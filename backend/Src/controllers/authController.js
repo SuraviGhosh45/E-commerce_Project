@@ -1,7 +1,7 @@
 import userModel from "../model/user.model.js"
 import bcrypt from 'bcrypt'
 import jwt from "jsonwebtoken"
-import  sendEmail  from "../utils/sendEmail.js"
+import sendEmail from "../utils/sendEmail.js"
 
 const getToken = (user) => {
     const token = jwt.sign({
@@ -38,8 +38,8 @@ const register = async (req, res) => {
                         Your Vendora verification code is: ${otp}
 
                   This code is valid for 10 minutes. For security, do not share it with anyone.
-Thank you,
-The Vendora Team`;
+                   Thank you,
+                  The Vendora Team`;
 
             await sendEmail(email, "OTP For Registration", message)
 
@@ -108,25 +108,25 @@ const login = async (req, res) => {
     }
 }
 
-const getUsers=async(req,res)=>{
-try{
-    const users=await userModel.find({}).select('-password')
-    if(users){
-        return res.status(200).json({
-            message:"All users fetched successfully",
-            users:users
+const getUsers = async (req, res) => {
+    try {
+        const users = await userModel.find({}).select('-password')
+        if (users) {
+            return res.status(200).json({
+                message: "All users fetched successfully",
+                users: users
+            })
+        }
+        else {
+            return res.status(404).json({
+                message: "Users not found"
+            })
+        }
+    } catch (error) {
+        return res.status(500).json({
+            message: error.message
         })
     }
-    else{
-        return res.status(404).json({
-            message:"Users not found"
-        })
-    }
-}catch(error){
-    return res.status(500).json({
-        message:error.message
-    })
-}
 }
 
-export default {register,login,getUsers}
+export default { register, login, getUsers }
