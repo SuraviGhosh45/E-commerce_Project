@@ -14,7 +14,7 @@ const UserScheema=mongoose.Schema({
     password:{
         type:String,
         required:true,
-        match:[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, 'Enter 1 lowercase, 1 uppercase, 1 digit, 1 special character and minimum 8 characters']
+        /* match:[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, 'Enter 1 lowercase, 1 uppercase, 1 digit, 1 special character and minimum 8 characters']*/
     },
     role:{
         type:String,

@@ -35,11 +35,19 @@ const register = async (req, res) => {
             const otp = Math.floor(100000 + Math.random() * 900000).toString()
 
             const message = `Hello ${name},
-                        Your Vendora verification code is: ${otp}
 
-                  This code is valid for 10 minutes. For security, do not share it with anyone.
-                   Thank you,
-                  The Vendora Team`;
+Thank you for signing up with Vendora!
+
+Your verification code is:
+
+${otp}
+
+This code is valid for 10 minutes. For your security, please do not share this code with anyone.
+
+If you did not request this code, please ignore this email.
+
+Best regards,
+The Vendora Team`;
 
             await sendEmail(email, "OTP For Registration", message)
 

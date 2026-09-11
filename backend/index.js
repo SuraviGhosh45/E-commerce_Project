@@ -7,7 +7,7 @@ import connectDB from "./Src/config/db.js";
 import cookieParser from "cookie-parser";
 import authRoutes from "./Src/routes/authRoutes.js";
 import productRoutes from "./Src/routes/productRoutes.js"
-// import orderRoutes from "./Src/routes/orderRoutes.js"
+import orderRoutes from "./Src/routes/orderRoutes.js"
 // import paymentRoutes from "./Src/routes/paymentRoutes.js"
 // import adminRoutes from "./Src/routes/adminRoutes.js"
 
