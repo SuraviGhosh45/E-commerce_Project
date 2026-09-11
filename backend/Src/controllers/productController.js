@@ -1,6 +1,6 @@
 import productModel from "../model/product.model.js";
 import s3 from "../config/s3.js"
-import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 
 const getProducts = async (req, res) => {
     try {
@@ -101,8 +101,9 @@ const updateProduct = async (req, res) => {
         product.category = category ?? product.category;
         product.stock = stock ?? product.stock;
 
-        // S3 image update
+
         if (req.file) {
+            const oldImageKey = product.imageURL;
             const key = `products/${Date.now()}-${req.file.originalname}`;
 
             const command = new PutObjectCommand({
@@ -115,6 +116,15 @@ const updateProduct = async (req, res) => {
             await s3.send(command);
 
             product.imageURL = key;
+
+
+            if (oldImageKey) {
+                const deleteCommand = new DeleteObjectCommand({
+                    Bucket: process.env.AWS_BUCKET_NAME,
+                    Key: oldImageKey
+                });
+                await s3.send(deleteCommand);
+            }
         }
 
         const updatedProduct = await product.save();
@@ -134,21 +144,30 @@ const updateProduct = async (req, res) => {
     }
 };
 
-const deleteProduct=async(req,res)=>{
-    try{
-        const product=await productModel.findById(req.params.id)
-        if(product){
+const deleteProduct = async (req, res) => {
+    try {
+        const product = await productModel.findById(req.params.id)
+        if (product) {
+            if (product.imageURL) {
+
+                const deleteCommand = new DeleteObjectCommand({
+                    Bucket: process.env.AWS_BUCKET_NAME,
+                    Key: product.imageURL
+                });
+
+                await s3.send(deleteCommand);
+            }
             await productModel.deleteOne({ _id: req.params.id });
             return res.status(200).json({
-                message:"Product Deleted Successfully"
+                message: "Product Deleted Successfully"
             })
         }
-        else{
+        else {
             return res.status(404).json({
-                message:"Product Not Found"
+                message: "Product Not Found"
             })
         }
-    }catch(error){
+    } catch (error) {
         return res.status(500).json({
             message: "Server Error"
         })
