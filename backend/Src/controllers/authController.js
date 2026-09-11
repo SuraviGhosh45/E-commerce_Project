@@ -1,15 +1,9 @@
 import userModel from "../model/user.model.js"
 import bcrypt from 'bcrypt'
-import jwt from "jsonwebtoken"
 import sendEmail from "../utils/sendEmail.js"
+import getToken from "../utils/getToken.js"
 
-const getToken = (user) => {
-    const token = jwt.sign({
-        id: user._id,
-        role: user.role
-    }, process.env.JWT_SECRET, { expiresIn: '7d' })
-    return token
-}
+
 
 const register = async (req, res) => {
     try {
@@ -23,18 +17,23 @@ const register = async (req, res) => {
             })
         }
 
+
         const hashedPassword = await bcrypt.hash(password, 10)
 
+        const otp = Math.floor(100000 + Math.random() * 900000).toString()
+
+        const otpExpires = new Date(
+            Date.now() + 10 * 60 * 1000
+        )
         const newUser = await userModel.create({
-            name: name,
-            email: email,
-            password: hashedPassword
+            name,
+            email,
+            password: hashedPassword,
+            otp,
+            otpExpires,
+            isVerified: false
         })
-
-        if (newUser) {
-            const otp = Math.floor(100000 + Math.random() * 900000).toString()
-
-            const message = `Hello ${name},
+        const message = `Hello ${name},
 
 Thank you for signing up with Vendora!
 
@@ -49,32 +48,19 @@ If you did not request this code, please ignore this email.
 Best regards,
 The Vendora Team`;
 
-            await sendEmail(email, "OTP For Registration", message)
-
-            const token = getToken(newUser)
-
-            res.cookie("authToken", token, {
-                httpOnly: true,
-                secure: false,
-                sameSite: "strict",
-                maxAge: 7 * 24 * 60 * 60 * 1000
-            });
-
-            return res.status(201).json({
-                _id: newUser._id,
-                name: newUser.name,
-                email: newUser.email,
-                role: newUser.role,
-                token
-            });
+        await sendEmail(email, "Vendora Email Verification OTP", message)
 
 
-        }
-        else {
-            return res.status(400).json({
-                message: "Internal Error"
-            })
-        }
+        return res.status(201).json({
+            _id: newUser._id,
+            name: newUser.name,
+            email: newUser.email,
+            role: newUser.role,
+            isVerified: newUser.isVerified
+        });
+
+
+
 
     } catch (error) {
         res.status(500).json({
@@ -95,13 +81,20 @@ const login = async (req, res) => {
                 message: "Kindly Register first."
             })
         }
+        if (!user.isVerified) {
+            return res.status(403).json({
+                message: "Please verify your email before logging in"
+            });
+        }
+        const token = getToken(user);
+
         if (user && (await bcrypt.compare(password, user.password))) {
             res.status(200).json({
                 _id: user._id,
                 name: user.name,
                 email: user.email,
                 role: user.role,
-                token: getToken(user)
+                token
             })
         }
         else {
