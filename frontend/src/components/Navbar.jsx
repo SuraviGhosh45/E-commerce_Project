@@ -1,34 +1,21 @@
 
 import { CiSearch } from "react-icons/ci";
-import { FaSun, FaMoon } from "react-icons/fa";
 import { TiShoppingCart } from "react-icons/ti";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
-import { useTheme } from "../context/ThemeContext.jsx";
 
 const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuth();
-  const { isDark, toggleTheme } = useTheme();
 
   return (
-    <nav
-      className={`w-full border-b px-6 py-4 transition-colors duration-300 ${
-        isDark
-          ? "border-[#292929] bg-[#0B0B0B] text-white"
-          : "border-gray-200 bg-white text-black"
-      }`}
-    >
+    <nav className="w-full border-b border-[#292929] bg-[#0B0B0B] px-6 py-4 text-white">
       <div className="mx-auto flex max-w-7xl items-center justify-between">
 
         {/* Logo */}
         <div>
           <Link to="/">
             <img
-              src={
-                isDark
-                  ? "/vendora_logo_white.png"
-                  : "/vendora_logo_black.png"
-              }
+              src="/vendora_logo_black.png"
               alt="Vendora"
               className="h-10 w-auto"
             />
@@ -37,11 +24,7 @@ const Navbar = () => {
 
         {/* Navigation */}
         <div>
-          <ul
-            className={`flex items-center gap-8 text-sm font-medium ${
-              isDark ? "text-gray-200" : "text-gray-800"
-            }`}
-          >
+          <ul className="flex items-center gap-8 text-sm font-medium text-gray-200">
 
             {/* Admin Navigation */}
             {isAuthenticated && user?.role === "admin" ? (
@@ -123,32 +106,10 @@ const Navbar = () => {
             <li>
               <button
                 type="button"
-                className={`flex items-center gap-1 transition-colors hover:text-[#C9A227] ${
-                  isDark ? "text-gray-200" : "text-gray-800"
-                }`}
+                className="flex items-center gap-1 text-gray-200 transition-colors hover:text-[#C9A227]"
               >
                 <CiSearch size={22} />
                 <span>Search</span>
-              </button>
-            </li>
-
-            {/* Theme */}
-            <li>
-              <button
-                type="button"
-                onClick={toggleTheme}
-                title={isDark ? "Switch to light mode" : "Switch to dark mode"}
-                className={`flex items-center gap-2 transition-colors hover:text-[#C9A227] ${
-                  isDark ? "text-gray-200" : "text-gray-800"
-                }`}
-              >
-                {isDark ? (
-                  <FaSun size={18} />
-                ) : (
-                  <FaMoon size={18} />
-                )}
-
-                <span>{isDark ? "Light" : "Dark"}</span>
               </button>
             </li>
 
@@ -157,9 +118,7 @@ const Navbar = () => {
               <li>
                 <Link
                   to="/cart"
-                  className={`flex items-center gap-1 transition-colors hover:text-[#C9A227] ${
-                    isDark ? "text-gray-200" : "text-gray-800"
-                  }`}
+                  className="flex items-center gap-1 text-gray-200 transition-colors hover:text-[#C9A227]"
                 >
                   <TiShoppingCart size={23} />
                   <span>Cart</span>
@@ -174,11 +133,7 @@ const Navbar = () => {
                 <li>
                   <Link
                     to="/login"
-                    className={`rounded-md border px-4 py-2 transition-all ${
-                      isDark
-                        ? "border-[#C9A227] text-white hover:bg-[#C9A227] hover:text-black"
-                        : "border-black text-black hover:bg-black hover:text-white"
-                    }`}
+                    className="rounded-md border border-[#C9A227] px-4 py-2 text-white transition-all hover:bg-[#C9A227] hover:text-black"
                   >
                     Login
                   </Link>
@@ -188,11 +143,7 @@ const Navbar = () => {
                 <li>
                   <Link
                     to="/register"
-                    className={`rounded-md px-4 py-2 transition-all ${
-                      isDark
-                        ? "bg-[#C9A227] text-black hover:bg-[#E2C45A]"
-                        : "bg-black text-white hover:bg-gray-800"
-                    }`}
+                    className="rounded-md bg-[#C9A227] px-4 py-2 text-black transition-all hover:bg-[#E2C45A]"
                   >
                     Register
                   </Link>
@@ -204,9 +155,7 @@ const Navbar = () => {
                 <li>
                   <Link
                     to="/profile"
-                    className={`transition-colors hover:text-[#C9A227] ${
-                      isDark ? "text-gray-200" : "text-gray-800"
-                    }`}
+                    className="text-gray-200 transition-colors hover:text-[#C9A227]"
                   >
                     {user?.name || "Profile"}
                   </Link>
@@ -217,11 +166,7 @@ const Navbar = () => {
                   <button
                     type="button"
                     onClick={logout}
-                    className={`rounded-md border px-4 py-2 transition-all ${
-                      isDark
-                        ? "border-gray-600 text-white hover:border-[#C9A227] hover:bg-[#C9A227] hover:text-black"
-                        : "border-black text-black hover:bg-black hover:text-white"
-                    }`}
+                    className="rounded-md border border-gray-600 px-4 py-2 text-white transition-all hover:border-[#C9A227] hover:bg-[#C9A227] hover:text-black"
                   >
                     Logout
                   </button>

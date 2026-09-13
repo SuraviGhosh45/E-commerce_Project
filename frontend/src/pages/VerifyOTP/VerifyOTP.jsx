@@ -1,8 +1,8 @@
+
 import { useAuth } from "../../context/AuthContext";
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FiArrowRight, FiMail } from "react-icons/fi";
-import { use } from "react";
 
 const VerifyOTP = () => {
   const [otp, setOtp] = useState("");
@@ -12,10 +12,11 @@ const VerifyOTP = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const {login}=useAuth();
+  const { login } = useAuth();
 
-  // Email passed from Register page
+  // Data passed from Register page
   const email = location.state?.email || "";
+  const name = location.state?.name || "Vendora User";
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -33,12 +34,13 @@ const VerifyOTP = () => {
 
     setLoading(true);
 
-    const userData={
-        name:name,
-        email:email,
-        role:"user"
-    }
-    login(userData)
+    const userData = {
+      name: name,
+      email: email,
+      role: "user",
+    };
+
+    login(userData);
 
     // Simulate successful verification
     setTimeout(() => {
@@ -55,8 +57,8 @@ const VerifyOTP = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-80px)] bg-white px-6 py-12 text-black">
-      <div className="mx-auto grid max-w-6xl overflow-hidden rounded-3xl border border-gray-200 lg:grid-cols-2">
+    <div className="min-h-[calc(100vh-80px)] bg-[#0B0B0B] px-6 py-12 text-white">
+      <div className="mx-auto grid max-w-6xl overflow-hidden rounded-3xl border border-[#292929] bg-[#151515] lg:grid-cols-2">
 
         {/* Left Branding Section */}
         <div className="relative hidden min-h-[700px] overflow-hidden bg-black p-12 text-white lg:flex lg:flex-col lg:justify-between">
@@ -72,7 +74,7 @@ const VerifyOTP = () => {
           </div>
 
           <div className="relative z-10">
-            <p className="mb-4 text-sm uppercase tracking-[0.3em] text-gray-400">
+            <p className="mb-4 text-sm uppercase tracking-[0.3em] text-[#C9A227]">
               Almost there
             </p>
 
@@ -89,44 +91,48 @@ const VerifyOTP = () => {
           </div>
 
           {/* Decorative elements */}
-          <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full border border-white/10" />
-          <div className="absolute -bottom-32 -left-20 h-80 w-80 rounded-full border border-white/10" />
+          <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full border border-[#C9A227]/20" />
+          <div className="absolute -bottom-32 -left-20 h-80 w-80 rounded-full border border-[#C9A227]/10" />
+
         </div>
 
         {/* OTP Section */}
-        <div className="flex min-h-[700px] items-center justify-center p-8 sm:p-12">
+        <div className="flex min-h-[700px] items-center justify-center bg-[#151515] p-8 sm:p-12">
+
           <div className="w-full max-w-md">
 
             {/* Mobile Logo */}
             <div className="mb-10 lg:hidden">
               <Link to="/">
                 <img
-                  src="/vendora_logo_black.png"
+                  src="/vendora_logo_white.png"
                   alt="Vendora"
                   className="h-10 w-auto"
                 />
               </Link>
             </div>
 
+            {/* Heading */}
             <div className="mb-8">
 
-              <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-black text-white">
+              <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-[#C9A227] text-black">
                 <FiMail size={21} />
               </div>
 
-              <h2 className="text-3xl font-semibold tracking-tight">
+              <h2 className="text-3xl font-semibold tracking-tight text-white">
                 Verify your email
               </h2>
 
-              <p className="mt-3 text-sm leading-6 text-gray-500">
+              <p className="mt-3 text-sm leading-6 text-gray-400">
                 Enter the 6-digit verification code sent to
               </p>
 
               {email && (
-                <p className="mt-1 font-medium text-black">
+                <p className="mt-1 font-medium text-[#C9A227]">
                   {email}
                 </p>
               )}
+
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -135,7 +141,7 @@ const VerifyOTP = () => {
               <div>
                 <label
                   htmlFor="otp"
-                  className="mb-2 block text-sm font-medium"
+                  className="mb-2 block text-sm font-medium text-gray-200"
                 >
                   Verification code
                 </label>
@@ -149,13 +155,13 @@ const VerifyOTP = () => {
                   value={otp}
                   onChange={handleOtpChange}
                   placeholder="000000"
-                  className="w-full rounded-xl border border-gray-300 px-4 py-4 text-center text-2xl font-semibold tracking-[0.5em] outline-none transition focus:border-black"
+                  className="w-full rounded-xl border border-[#292929] bg-[#0B0B0B] px-4 py-4 text-center text-2xl font-semibold tracking-[0.5em] text-white outline-none placeholder:text-gray-600 focus:border-[#C9A227]"
                 />
               </div>
 
               {/* Error */}
               {error && (
-                <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+                <p className="rounded-lg border border-red-900/40 bg-red-950/30 px-4 py-3 text-sm text-red-400">
                   {error}
                 </p>
               )}
@@ -164,7 +170,7 @@ const VerifyOTP = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-black px-5 py-4 font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#C9A227] px-5 py-4 font-medium text-black transition hover:bg-[#E2C45A] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? "Verifying..." : "Verify Email"}
 
@@ -175,7 +181,7 @@ const VerifyOTP = () => {
               <div className="text-center">
                 <button
                   type="button"
-                  className="text-sm font-medium underline underline-offset-4 hover:text-gray-500"
+                  className="text-sm font-medium text-gray-400 underline underline-offset-4 transition hover:text-[#C9A227]"
                 >
                   Resend OTP
                 </button>
@@ -184,11 +190,11 @@ const VerifyOTP = () => {
             </form>
 
             {/* Login */}
-            <div className="mt-8 text-center text-sm text-gray-500">
+            <div className="mt-8 text-center text-sm text-gray-400">
               Already verified?{" "}
               <Link
                 to="/login"
-                className="font-semibold text-black underline underline-offset-4"
+                className="font-semibold text-[#C9A227] underline underline-offset-4 transition hover:text-[#E2C45A]"
               >
                 Sign in
               </Link>

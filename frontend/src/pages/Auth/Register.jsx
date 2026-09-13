@@ -26,9 +26,6 @@ const Register = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Frontend-only for now
-    // Later this will call the backend register API.
-
     navigate("/verify-otp", {
       state: {
         email: formData.email,
@@ -38,237 +35,305 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-80px)] bg-white px-6 py-12 text-black">
-      <div className="mx-auto grid max-w-6xl overflow-hidden rounded-3xl border border-gray-200 bg-white lg:grid-cols-2">
+    <main className="min-h-screen bg-[#0B0B0B] px-4 py-6 text-white sm:px-6 sm:py-8 md:py-10 lg:px-8 lg:py-12">
+      <div className="mx-auto w-full max-w-7xl overflow-hidden rounded-2xl border border-[#292929] bg-[#151515] shadow-2xl sm:rounded-3xl">
 
-        {/* Left - Branding */}
-        <div className="relative hidden min-h-[700px] overflow-hidden bg-black p-12 text-white lg:flex lg:flex-col lg:justify-between">
+        <div className="grid lg:grid-cols-2">
 
-          {/* Decorative circles */}
-          <div className="absolute -right-32 -top-32 h-80 w-80 rounded-full border border-white/10" />
-          <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full border border-white/10" />
+          {/* ================= LEFT BRANDING ================= */}
+          <section className="relative hidden min-h-[760px] overflow-hidden bg-black p-8 sm:p-10 lg:flex lg:flex-col lg:justify-between xl:p-12 2xl:min-h-[820px]">
 
-          <div className="relative z-10">
-            <Link to="/">
-              <img
-                src="/vendora_logo_white.png"
-                alt="Vendora"
-                className="h-9 w-auto"
-              />
-            </Link>
-          </div>
+            {/* Decorative circles */}
+            <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full border border-[#C9A227]/15 sm:-right-32 sm:-top-32 sm:h-80 sm:w-80" />
 
-          <div className="relative z-10 max-w-md">
-            <p className="mb-5 text-sm uppercase tracking-[0.3em] text-gray-400">
-              Join Vendora
-            </p>
+            <div className="absolute -bottom-32 -left-24 h-72 w-72 rounded-full border border-[#C9A227]/10 sm:-bottom-40 sm:-left-40 sm:h-96 sm:w-96" />
 
-            <h1 className="text-5xl font-semibold leading-tight tracking-tight">
-              Shopping,
-              <br />
-              <span className="text-gray-400">redefined.</span>
-            </h1>
-
-            <p className="mt-6 max-w-sm text-sm leading-7 text-gray-400">
-              Create your account and discover a smarter, simpler way to shop
-              your favorite products.
-            </p>
-
-            <div className="mt-8 space-y-3 text-sm text-gray-300">
-              <p>✓ Personalized shopping experience</p>
-              <p>✓ Easy order tracking</p>
-              <p>✓ Secure checkout</p>
-            </div>
-          </div>
-
-          <p className="relative z-10 text-xs text-gray-500">
-            © 2026 Vendora. All rights reserved.
-          </p>
-        </div>
-
-        {/* Right - Register Form */}
-        <div className="flex min-h-[700px] items-center justify-center p-6 sm:p-12">
-          <div className="w-full max-w-md">
-
-            {/* Mobile Logo */}
-            <div className="mb-10 lg:hidden">
+            {/* Logo */}
+            <div className="relative z-10">
               <Link to="/">
                 <img
-                  src="/vendora_logo_black.png"
+                  src="/vendora_logo_white.png"
                   alt="Vendora"
-                  className="h-9 w-auto"
+                  className="h-8 w-auto sm:h-9"
                 />
               </Link>
             </div>
 
-            <div className="mb-8">
-              <p className="mb-3 text-xs font-medium uppercase tracking-[0.25em] text-gray-500">
-                Get started
+            {/* Branding content */}
+            <div className="relative z-10 max-w-xl">
+
+              <p className="mb-4 text-xs font-medium uppercase tracking-[0.25em] text-[#C9A227] sm:mb-5 sm:text-sm sm:tracking-[0.3em]">
+                Join Vendora
               </p>
 
-              <h2 className="text-4xl font-semibold tracking-tight">
-                Create account.
-              </h2>
+              <h1 className="text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl xl:text-6xl">
+                Shopping,
+                <br />
+                <span className="text-[#C9A227]">
+                  redefined.
+                </span>
+              </h1>
 
-              <p className="mt-3 text-sm text-gray-500">
-                Join Vendora and start your shopping journey.
+              <p className="mt-5 max-w-md text-sm leading-7 text-gray-400 sm:mt-6 sm:text-base">
+                Create your account and discover a smarter, simpler way to shop
+                your favorite products.
               </p>
+
+              <div className="mt-7 space-y-3 text-sm text-gray-300 sm:mt-8">
+
+                <p>
+                  <span className="text-[#C9A227]">✓</span>{" "}
+                  Personalized shopping experience
+                </p>
+
+                <p>
+                  <span className="text-[#C9A227]">✓</span>{" "}
+                  Easy order tracking
+                </p>
+
+                <p>
+                  <span className="text-[#C9A227]">✓</span>{" "}
+                  Secure checkout
+                </p>
+
+              </div>
+
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <p className="relative z-10 text-xs text-gray-500">
+              © 2026 Vendora. All rights reserved.
+            </p>
+          </section>
 
-              {/* Name */}
-              <div>
-                <label
-                  htmlFor="name"
-                  className="mb-2 block text-sm font-medium"
-                >
-                  Full name
-                </label>
+          {/* ================= FORM SECTION ================= */}
+          <section className="flex min-h-[720px] items-center bg-[#151515] px-5 py-10 sm:px-8 sm:py-12 md:px-12 lg:min-h-[760px] lg:px-10 xl:px-16 2xl:px-20">
 
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  placeholder="Your full name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3.5 text-sm outline-none transition placeholder:text-gray-400 focus:border-black focus:ring-1 focus:ring-black"
-                />
-              </div>
+            <div className="mx-auto w-full max-w-md">
 
-              {/* Email */}
-              <div>
-                <label
-                  htmlFor="email"
-                  className="mb-2 block text-sm font-medium"
-                >
-                  Email address
-                </label>
+              {/* Mobile / Tablet Logo */}
+              <div className="mb-8 flex items-center justify-between sm:mb-10 lg:hidden">
 
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3.5 text-sm outline-none transition placeholder:text-gray-400 focus:border-black focus:ring-1 focus:ring-black"
-                />
-              </div>
-
-              {/* Password */}
-              <div>
-                <label
-                  htmlFor="password"
-                  className="mb-2 block text-sm font-medium"
-                >
-                  Password
-                </label>
-
-                <div className="relative">
-                  <input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Create a strong password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                    className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3.5 pr-12 text-sm outline-none transition placeholder:text-gray-400 focus:border-black focus:ring-1 focus:ring-black"
+                <Link to="/">
+                  <img
+                    src="/vendora_logo_white.png"
+                    alt="Vendora"
+                    className="h-8 w-auto sm:h-9"
                   />
+                </Link>
 
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 transition hover:text-black"
+                <Link
+                  to="/login"
+                  className="text-xs font-medium text-gray-400 transition hover:text-[#C9A227] sm:text-sm"
+                >
+                  Sign in
+                </Link>
+
+              </div>
+
+              {/* Heading */}
+              <div className="mb-7 sm:mb-8">
+
+                <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.22em] text-[#C9A227] sm:text-xs sm:tracking-[0.25em]">
+                  Get started
+                </p>
+
+                <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+                  Create account.
+                </h2>
+
+                <p className="mt-3 max-w-sm text-sm leading-6 text-gray-400 sm:text-base">
+                  Join Vendora and start your shopping journey.
+                </p>
+
+              </div>
+
+              {/* Form */}
+              <form
+                onSubmit={handleSubmit}
+                className="space-y-4 sm:space-y-5"
+              >
+
+                {/* Name */}
+                <div>
+                  <label
+                    htmlFor="name"
+                    className="mb-2 block text-sm font-medium text-gray-200"
                   >
-                    {showPassword ? (
-                      <FiEyeOff size={18} />
-                    ) : (
-                      <FiEye size={18} />
-                    )}
-                  </button>
+                    Full name
+                  </label>
+
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    placeholder="Your full name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    autoComplete="name"
+                    required
+                    className="w-full rounded-xl border border-[#292929] bg-[#0B0B0B] px-4 py-3.5 text-sm text-white outline-none placeholder:text-gray-600 transition focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/20 sm:py-4"
+                  />
                 </div>
 
-                <p className="mt-2 text-xs leading-5 text-gray-400">
-                  Minimum 8 characters with uppercase, lowercase, number and
-                  special character.
-                </p>
-              </div>
+                {/* Email */}
+                <div>
+                  <label
+                    htmlFor="email"
+                    className="mb-2 block text-sm font-medium text-gray-200"
+                  >
+                    Email address
+                  </label>
 
-              {/* Terms */}
-              <div className="flex items-start gap-3">
-                <input
-                  id="terms"
-                  type="checkbox"
-                  required
-                  className="mt-1 h-4 w-4 accent-black"
-                />
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={formData.email}
+                    onChange={handleChange}
+                    autoComplete="email"
+                    required
+                    className="w-full rounded-xl border border-[#292929] bg-[#0B0B0B] px-4 py-3.5 text-sm text-white outline-none placeholder:text-gray-600 transition focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/20 sm:py-4"
+                  />
+                </div>
 
-                <label
-                  htmlFor="terms"
-                  className="text-xs leading-5 text-gray-500"
+                {/* Password */}
+                <div>
+                  <label
+                    htmlFor="password"
+                    className="mb-2 block text-sm font-medium text-gray-200"
+                  >
+                    Password
+                  </label>
+
+                  <div className="relative">
+
+                    <input
+                      id="password"
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Create a strong password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      autoComplete="new-password"
+                      required
+                      className="w-full rounded-xl border border-[#292929] bg-[#0B0B0B] px-4 py-3.5 pr-12 text-sm text-white outline-none placeholder:text-gray-600 transition focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/20 sm:py-4"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={
+                        showPassword
+                          ? "Hide password"
+                          : "Show password"
+                      }
+                      className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center justify-center p-2 text-gray-500 transition hover:text-[#C9A227] sm:right-4"
+                    >
+                      {showPassword ? (
+                        <FiEyeOff size={18} />
+                      ) : (
+                        <FiEye size={18} />
+                      )}
+                    </button>
+
+                  </div>
+
+                  <p className="mt-2 text-xs leading-5 text-gray-500">
+                    Minimum 8 characters with uppercase, lowercase, number and
+                    special character.
+                  </p>
+                </div>
+
+                {/* Terms */}
+                <div className="flex items-start gap-3 pt-1">
+
+                  <input
+                    id="terms"
+                    type="checkbox"
+                    required
+                    className="mt-1 h-4 w-4 shrink-0 accent-[#C9A227]"
+                  />
+
+                  <label
+                    htmlFor="terms"
+                    className="text-xs leading-5 text-gray-400"
+                  >
+                    I agree to the{" "}
+                    <button
+                      type="button"
+                      className="font-medium text-[#C9A227] transition hover:text-[#E2C45A]"
+                    >
+                      Terms of Service
+                    </button>{" "}
+                    and{" "}
+                    <button
+                      type="button"
+                      className="font-medium text-[#C9A227] transition hover:text-[#E2C45A]"
+                    >
+                      Privacy Policy
+                    </button>
+                    .
+                  </label>
+
+                </div>
+
+                {/* Create Account */}
+                <button
+                  type="submit"
+                  className="group mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[#C9A227] px-5 py-3.5 text-sm font-medium text-black transition hover:bg-[#E2C45A] active:scale-[0.99] sm:py-4"
                 >
-                  I agree to the{" "}
-                  <span className="font-medium text-black">
-                    Terms of Service
-                  </span>{" "}
-                  and{" "}
-                  <span className="font-medium text-black">
-                    Privacy Policy
-                  </span>
-                  .
-                </label>
+                  Create account
+
+                  <FiArrowRight
+                    size={17}
+                    className="transition-transform group-hover:translate-x-1"
+                  />
+                </button>
+
+              </form>
+
+              {/* Divider */}
+              <div className="my-6 flex items-center gap-4 sm:my-7">
+
+                <div className="h-px flex-1 bg-[#292929]" />
+
+                <span className="text-[11px] text-gray-600">
+                  OR
+                </span>
+
+                <div className="h-px flex-1 bg-[#292929]" />
+
               </div>
 
-              {/* Create Account */}
+              {/* Google */}
               <button
-                type="submit"
-                className="group flex w-full items-center justify-center gap-2 rounded-xl bg-black px-5 py-3.5 text-sm font-medium text-white transition hover:bg-gray-800"
+                type="button"
+                className="flex w-full items-center justify-center gap-3 rounded-xl border border-[#292929] bg-[#0B0B0B] px-5 py-3.5 text-sm font-medium text-white transition hover:border-[#C9A227] hover:bg-[#111111] active:scale-[0.99] sm:py-4"
               >
-                Create account
-
-                <FiArrowRight
-                  size={17}
-                  className="transition-transform group-hover:translate-x-1"
-                />
+                <FcGoogle size={19} />
+                Continue with Google
               </button>
-            </form>
 
-            {/* Divider */}
-            <div className="my-7 flex items-center gap-4">
-              <div className="h-px flex-1 bg-gray-200" />
-              <span className="text-xs text-gray-400">OR</span>
-              <div className="h-px flex-1 bg-gray-200" />
+              {/* Desktop login */}
+              <p className="mt-7 hidden text-center text-sm text-gray-400 lg:block">
+
+                Already have an account?{" "}
+
+                <Link
+                  to="/login"
+                  className="font-medium text-[#C9A227] underline underline-offset-4 transition hover:text-[#E2C45A]"
+                >
+                  Sign in
+                </Link>
+
+              </p>
+
             </div>
-
-            {/* Google */}
-            <button
-              type="button"
-              className="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-300 px-5 py-3.5 text-sm font-medium transition hover:border-black hover:bg-gray-50"
-            >
-              <FcGoogle size={19} />
-              Continue with Google
-            </button>
-
-            {/* Login */}
-            <p className="mt-8 text-center text-sm text-gray-500">
-              Already have an account?{" "}
-              <Link
-                to="/login"
-                className="font-medium text-black underline underline-offset-4"
-              >
-                Sign in
-              </Link>
-            </p>
-
-          </div>
+          </section>
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 
