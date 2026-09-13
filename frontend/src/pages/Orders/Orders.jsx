@@ -1,4 +1,4 @@
-
+import { useAuth } from "../../context/AuthContext";
 import { Link } from "react-router-dom";
 import {
   FiArrowRight,
@@ -9,6 +9,30 @@ import {
 } from "react-icons/fi";
 
 const Orders = () => {
+  const { isAuthenticated } = useAuth();
+
+  if (!isAuthenticated) {
+    return (
+      <main className="min-h-screen bg-[#0B0B0B] px-5 py-20 text-white">
+        <div className="mx-auto max-w-xl rounded-2xl border border-[#292929] bg-[#151515] p-8 text-center">
+          <h1 className="text-2xl font-semibold">
+            Login required
+          </h1>
+
+          <p className="mt-3 text-sm leading-6 text-gray-500">
+            Sign in to view your orders.
+          </p>
+
+          <Link
+            to="/login"
+            className="mt-6 inline-flex rounded-xl bg-[#C9A227] px-6 py-3 text-sm font-medium text-black"
+          >
+            Sign In
+          </Link>
+        </div>
+      </main>
+    );
+  }
   // Frontend-only dummy orders
   const orders = [
     {

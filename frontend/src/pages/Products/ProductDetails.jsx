@@ -9,6 +9,7 @@ import {
   FiStar,
   FiTruck,
   FiShield,
+  FiCheck,
 } from "react-icons/fi";
 
 import products from "../../data/product";
@@ -26,12 +27,14 @@ const ProductDetails = () => {
 
   const [quantity, setQuantity] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [isAdded, setIsAdded] = useState(false);
 
   // Product not found
   if (!product) {
     return (
       <main className="min-h-screen bg-[#0B0B0B] px-5 py-20 text-white sm:px-8">
         <div className="mx-auto max-w-3xl rounded-2xl border border-[#292929] bg-[#151515] p-10 text-center sm:p-16">
+
           <h1 className="text-2xl font-semibold sm:text-3xl">
             Product not found
           </h1>
@@ -48,6 +51,7 @@ const ProductDetails = () => {
             <FiArrowLeft size={16} />
             Back to Shop
           </Link>
+
         </div>
       </main>
     );
@@ -67,6 +71,13 @@ const ProductDetails = () => {
 
   const handleAddToCart = () => {
     addToCart(product, quantity);
+
+    setIsAdded(true);
+
+    // Reset button after 2 seconds
+    setTimeout(() => {
+      setIsAdded(false);
+    }, 2000);
   };
 
   const handleBuyNow = () => {
@@ -125,7 +136,9 @@ const ProductDetails = () => {
               {/* Wishlist */}
               <button
                 type="button"
-                onClick={() => setIsWishlisted((current) => !current)}
+                onClick={() =>
+                  setIsWishlisted((current) => !current)
+                }
                 aria-label={
                   isWishlisted
                     ? "Remove from wishlist"
@@ -233,7 +246,9 @@ const ProductDetails = () => {
                     : "text-red-500"
                 }`}
               >
-                {product.stock > 0 ? "In stock" : "Out of stock"}
+                {product.stock > 0
+                  ? "In stock"
+                  : "Out of stock"}
               </span>
 
             </div>
@@ -307,16 +322,31 @@ const ProductDetails = () => {
             {/* Buttons */}
             <div className="mt-8 grid gap-3 sm:grid-cols-2">
 
+              {/* Add to Cart */}
               <button
                 type="button"
                 onClick={handleAddToCart}
                 disabled={product.stock <= 0}
-                className="flex items-center justify-center gap-2 rounded-xl border border-[#C9A227] bg-transparent px-5 py-4 text-sm font-medium text-[#C9A227] transition hover:bg-[#C9A227] hover:text-black disabled:cursor-not-allowed disabled:border-gray-700 disabled:text-gray-600"
+                className={`flex items-center justify-center gap-2 rounded-xl px-5 py-4 text-sm font-medium transition ${
+                  isAdded
+                    ? "border border-green-500 bg-green-500/10 text-green-400"
+                    : "border border-[#C9A227] bg-transparent text-[#C9A227] hover:bg-[#C9A227] hover:text-black"
+                } disabled:cursor-not-allowed disabled:border-gray-700 disabled:text-gray-600`}
               >
-                <FiShoppingCart size={18} />
-                Add to Cart
+                {isAdded ? (
+                  <>
+                    <FiCheck size={18} />
+                    Added to Cart
+                  </>
+                ) : (
+                  <>
+                    <FiShoppingCart size={18} />
+                    Add to Cart
+                  </>
+                )}
               </button>
 
+              {/* Buy Now */}
               <button
                 type="button"
                 onClick={handleBuyNow}
@@ -327,6 +357,16 @@ const ProductDetails = () => {
               </button>
 
             </div>
+
+            {/* View Cart after adding */}
+            {isAdded && (
+              <Link
+                to="/cart"
+                className="mt-3 flex w-full items-center justify-center rounded-xl border border-[#292929] bg-[#151515] px-5 py-3.5 text-sm font-medium text-gray-300 transition hover:border-[#C9A227] hover:text-[#C9A227]"
+              >
+                View Cart
+              </Link>
+            )}
 
             {/* Product Information */}
             <div className="mt-8 border-t border-[#292929] pt-7">

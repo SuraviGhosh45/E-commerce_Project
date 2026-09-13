@@ -1,12 +1,25 @@
-
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   FiHeart,
   FiShoppingCart,
   FiStar,
+  FiCheck,
 } from "react-icons/fi";
 
 const ProductCard = ({ product, onAddToCart }) => {
+  const [isAdded, setIsAdded] = useState(false);
+
+  const handleAddToCart = () => {
+    onAddToCart?.(product);
+
+    setIsAdded(true);
+
+    setTimeout(() => {
+      setIsAdded(false);
+    }, 2000);
+  };
+
   return (
     <article className="group overflow-hidden rounded-2xl border border-[#292929] bg-[#111111] transition duration-300 hover:-translate-y-1 hover:border-[#C9A227]">
 
@@ -41,10 +54,12 @@ const ProductCard = ({ product, onAddToCart }) => {
       {/* Details */}
       <div className="p-5">
 
+        {/* Category */}
         <p className="text-[10px] uppercase tracking-[0.15em] text-gray-500 sm:text-xs">
           {product.category}
         </p>
 
+        {/* Product name */}
         <Link to={`/products/${product.id}`}>
           <h3 className="mt-2 line-clamp-1 text-base font-semibold text-white transition group-hover:text-[#C9A227]">
             {product.name}
@@ -55,7 +70,10 @@ const ProductCard = ({ product, onAddToCart }) => {
         <div className="mt-3 flex items-center gap-2">
 
           <div className="flex items-center gap-1 text-[#C9A227]">
-            <FiStar size={13} fill="currentColor" />
+            <FiStar
+              size={13}
+              fill="currentColor"
+            />
 
             <span className="text-xs font-medium">
               {product.rating}
@@ -65,6 +83,7 @@ const ProductCard = ({ product, onAddToCart }) => {
           <span className="text-xs text-gray-600">
             ({product.reviews})
           </span>
+
         </div>
 
         {/* Price / Cart */}
@@ -82,14 +101,32 @@ const ProductCard = ({ product, onAddToCart }) => {
             </p>
           </div>
 
+          {/* Add to Cart */}
           <button
             type="button"
-            onClick={() => onAddToCart?.(product)}
+            onClick={handleAddToCart}
             disabled={product.stock <= 0}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#C9A227] text-black transition hover:bg-[#E2C45A] disabled:cursor-not-allowed disabled:bg-gray-700 disabled:text-gray-500"
-            aria-label={`Add ${product.name} to cart`}
+            className={`flex h-10 min-w-10 shrink-0 items-center justify-center gap-1.5 rounded-full px-3 text-sm font-medium transition ${
+              isAdded
+                ? "bg-green-500 text-white"
+                : "bg-[#C9A227] text-black hover:bg-[#E2C45A]"
+            } disabled:cursor-not-allowed disabled:bg-gray-700 disabled:text-gray-500`}
+            aria-label={
+              isAdded
+                ? `${product.name} added to cart`
+                : `Add ${product.name} to cart`
+            }
           >
-            <FiShoppingCart size={17} />
+            {isAdded ? (
+              <>
+                <FiCheck size={16} />
+                <span className="hidden sm:inline">
+                  Added
+                </span>
+              </>
+            ) : (
+              <FiShoppingCart size={17} />
+            )}
           </button>
 
         </div>
@@ -99,4 +136,3 @@ const ProductCard = ({ product, onAddToCart }) => {
 };
 
 export default ProductCard;
-

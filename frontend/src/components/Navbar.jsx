@@ -1,4 +1,3 @@
-
 import { CiSearch } from "react-icons/ci";
 import { TiShoppingCart } from "react-icons/ti";
 import { Link } from "react-router-dom";
@@ -62,6 +61,16 @@ const Navbar = () => {
                     className="transition-colors hover:text-[#C9A227]"
                   >
                     Users
+                  </Link>
+                </li>
+
+                {/* Analytics */}
+                <li>
+                  <Link
+                    to="/admin/analytics"
+                    className="transition-colors hover:text-[#C9A227]"
+                  >
+                    Analytics
                   </Link>
                 </li>
               </>
@@ -176,10 +185,10 @@ const Navbar = () => {
 
           </ul>
         </div>
+
       </div>
     </nav>
   );
 };
 
 export default Navbar;
-

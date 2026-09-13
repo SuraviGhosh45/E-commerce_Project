@@ -17,6 +17,13 @@ import OrderDetails from "./pages/Orders/OrderDetails";
 import Orders from "./pages/Orders/Orders";
 import Payment from "./pages/Orders/Payment";
 import OrderSuccess from "./pages/Orders/OrderSuccess";
+import Dashboard from "./pages/Admin/Dashboard";
+import OrderAdmin from "./pages/Admin/OrderAdmin";
+import ProductAdmin from "./pages/Admin/ProductAdmin";
+import UserAdmin from "./pages/Admin/UsersAdmin";
+import Analytics from "./pages/Admin/Analytics";
+import Categories from "./pages/Categories/Categories";
+import Profile from "./pages/Profile/Profile";
 
 
 const App = () => {
@@ -35,6 +42,8 @@ const App = () => {
 
         <Route path="/shop" element={<Products/>}/>
 
+        <Route path="/categories" element={<Categories/>} />
+
         <Route path="/products/:id" element={<ProductDetails/>} />
 
         <Route path="/cart" element={<Cart/>}/>
@@ -48,6 +57,18 @@ const App = () => {
         <Route path="/payment" element={<Payment/>} />
 
         <Route path="/order-success" element={<OrderSuccess/>} />
+
+        <Route path="/admin/dashboard" element={<Dashboard/>} />
+
+        <Route path="/admin/orders" element={<OrderAdmin/>} />
+
+        <Route path="/admin/products" element={<ProductAdmin />}/>
+
+        <Route path="/admin/products" element={<UserAdmin/>}/>
+
+        <Route path="/admin/analytics" element={<Analytics />} />
+
+        <Route path="/profile" element={<Profile/>} />
 
       </Routes>
 

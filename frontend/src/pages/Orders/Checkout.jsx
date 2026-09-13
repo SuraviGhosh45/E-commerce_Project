@@ -14,9 +14,11 @@ import {
 } from "react-icons/fi";
 
 import { useCart } from "../../context/CartContext";
+import { useAuth } from "../../context/AuthContext";
 
 const Checkout = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   const {
     cartItems,
@@ -72,6 +74,45 @@ const Checkout = () => {
       },
     });
   };
+  if (!isAuthenticated) {
+  return (
+    <main className="min-h-screen bg-[#0B0B0B] px-5 py-20 text-[#F5F5F5]">
+      <div className="mx-auto max-w-2xl rounded-2xl border border-[#292929] bg-[#151515] p-8 text-center sm:p-12">
+
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#0B0B0B] text-[#C9A227]">
+          🔒
+        </div>
+
+        <h1 className="mt-6 text-2xl font-semibold sm:text-3xl">
+          Login required
+        </h1>
+
+        <p className="mt-3 text-sm leading-7 text-gray-500">
+          Please sign in to your Vendora account before continuing to
+          checkout.
+        </p>
+
+        <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
+
+          <Link
+            to="/login"
+            className="rounded-xl bg-[#C9A227] px-6 py-3.5 text-sm font-medium text-black transition hover:bg-[#E2C45A]"
+          >
+            Sign In
+          </Link>
+
+          <Link
+            to="/register"
+            className="rounded-xl border border-[#C9A227] px-6 py-3.5 text-sm font-medium text-[#C9A227] transition hover:bg-[#C9A227] hover:text-black"
+          >
+            Create Account
+          </Link>
+
+        </div>
+      </div>
+    </main>
+  );
+}
 
   // Empty cart
   if (isCartEmpty) {

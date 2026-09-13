@@ -9,7 +9,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, loginAsAdmin, loginAsUser } = useAuth();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -261,6 +261,25 @@ const Login = () => {
                   </label>
 
                 </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    loginAsAdmin();
+                    navigate("/admin/dashboard");
+                  }}
+                >
+                  Test Admin
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    loginAsUser();
+                    navigate("/");
+                  }}
+                >
+                  Test Customer
+                </button>
 
                 {/* Login */}
                 <button
