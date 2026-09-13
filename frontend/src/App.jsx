@@ -2,13 +2,19 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import Home from './pages/Home/Home'
+import Login from "./pages/Auth/Login";
+import Register from "./pages/Auth/Register";
+import VerifyOTP from "./pages/VerifyOTP/VerifyOTP";
 
 const App = () => {
   return (
     <BrowserRouter>
       <Navbar/>
       <Routes>
-        <Route path='/'element={<Home/>}/>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/verify-otp" element={<VerifyOTP/>}/>
       </Routes>
       <Footer/>
     </BrowserRouter>
