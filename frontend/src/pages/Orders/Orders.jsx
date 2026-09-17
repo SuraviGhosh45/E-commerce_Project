@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import {
   FiArrowRight,
   FiCalendar,
@@ -11,15 +11,30 @@ import {
 import api from "../../services/api";
 
 const Orders = () => {
-  const { isAuthenticated } = useAuth();
+  const {
+    isAuthenticated,
+    isAdmin,
+  } = useAuth();
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // --------------------------------------------------
+  // ADMIN SHOULD NEVER USE CUSTOMER MY ORDERS PAGE
+  // --------------------------------------------------
+
+  if (isAuthenticated && isAdmin) {
+    return <Navigate to="/admin/orders" replace />;
+  }
+
+  // --------------------------------------------------
+  // FETCH CUSTOMER ORDERS
+  // --------------------------------------------------
+
   useEffect(() => {
     const fetchOrders = async () => {
-      if (!isAuthenticated) {
+      if (!isAuthenticated || isAdmin) {
         setLoading(false);
         return;
       }
@@ -30,34 +45,43 @@ const Orders = () => {
 
         const response = await api.get("/orders/myorders");
 
-        const backendOrders = response.data?.orders || [];
+        const backendOrders =
+          response.data?.orders || [];
 
-        const formattedOrders = backendOrders.map((order) => ({
-          ...order,
-          id: order._id,
-          date: order.createdAt
-            ? new Date(order.createdAt).toLocaleDateString(
-                "en-IN",
-                {
+        const formattedOrders =
+          backendOrders.map((order) => ({
+            ...order,
+            id: order._id,
+
+            date: order.createdAt
+              ? new Date(
+                  order.createdAt
+                ).toLocaleDateString("en-IN", {
                   day: "2-digit",
                   month: "long",
                   year: "numeric",
-                }
-              )
-            : "—",
-          items: Array.isArray(order.items)
-            ? order.items.reduce(
-                (total, item) =>
-                  total + Number(item.quantity || 0),
-                0
-              )
-            : 0,
-          total: Number(order.totalAmount || 0),
-          status: order.status || "Pending",
-          statusType: String(
-            order.status || "Pending"
-          ).toLowerCase(),
-        }));
+                })
+              : "—",
+
+            items: Array.isArray(order.items)
+              ? order.items.reduce(
+                  (total, item) =>
+                    total +
+                    Number(item.quantity || 0),
+                  0
+                )
+              : 0,
+
+            total:
+              Number(order.totalAmount || 0),
+
+            status:
+              order.status || "Pending",
+
+            statusType: String(
+              order.status || "Pending"
+            ).toLowerCase(),
+          }));
 
         setOrders(formattedOrders);
       } catch (error) {
@@ -81,7 +105,11 @@ const Orders = () => {
     };
 
     fetchOrders();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isAdmin]);
+
+  // --------------------------------------------------
+  // ACTIVE ORDERS
+  // --------------------------------------------------
 
   const activeOrders = useMemo(() => {
     return orders.filter(
@@ -93,6 +121,10 @@ const Orders = () => {
   }, [orders]);
 
   const latestOrder = orders[0];
+
+  // --------------------------------------------------
+  // STATUS STYLES
+  // --------------------------------------------------
 
   const getStatusClasses = (status) => {
     switch (status) {
@@ -119,6 +151,10 @@ const Orders = () => {
     }
   };
 
+  // --------------------------------------------------
+  // NOT AUTHENTICATED
+  // --------------------------------------------------
+
   if (!isAuthenticated) {
     return (
       <main className="min-h-screen bg-[#0B0B0B] px-5 py-20 text-white">
@@ -142,6 +178,10 @@ const Orders = () => {
     );
   }
 
+  // --------------------------------------------------
+  // LOADING
+  // --------------------------------------------------
+
   if (loading) {
     return (
       <main className="min-h-screen bg-[#0B0B0B] px-5 py-20 text-[#F5F5F5]">
@@ -158,6 +198,7 @@ const Orders = () => {
 
   return (
     <main className="min-h-screen bg-[#0B0B0B] text-[#F5F5F5]">
+      {/* HEADER */}
       <section className="border-b border-[#292929] bg-black">
         <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8 sm:py-14 lg:px-10 xl:px-12">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -171,7 +212,8 @@ const Orders = () => {
               </h1>
 
               <p className="mt-4 max-w-xl text-sm leading-7 text-gray-400 sm:text-base">
-                View your purchases, track active orders and access your order details.
+                View your purchases, track active
+                orders and access your order details.
               </p>
             </div>
 
@@ -186,6 +228,7 @@ const Orders = () => {
         </div>
       </section>
 
+      {/* CONTENT */}
       <section className="mx-auto max-w-7xl px-5 py-8 sm:px-8 sm:py-10 lg:px-10 lg:py-14 xl:px-12">
         {error && (
           <div className="mb-6 rounded-xl border border-red-900/40 bg-red-950/20 px-4 py-3 text-sm text-red-400">
@@ -193,6 +236,7 @@ const Orders = () => {
           </div>
         )}
 
+        {/* SUMMARY */}
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="rounded-2xl border border-[#292929] bg-[#151515] p-5">
             <div className="flex items-center gap-3">
@@ -242,13 +286,15 @@ const Orders = () => {
                 </p>
 
                 <p className="mt-1 text-sm font-semibold text-gray-200">
-                  {latestOrder?.date || "No orders yet"}
+                  {latestOrder?.date ||
+                    "No orders yet"}
                 </p>
               </div>
             </div>
           </div>
         </div>
 
+        {/* ORDER HISTORY */}
         <div className="mt-8">
           <div className="flex items-center justify-between border-b border-[#292929] pb-5">
             <div>
@@ -263,7 +309,9 @@ const Orders = () => {
 
             <span className="text-xs text-gray-600">
               {orders.length}{" "}
-              {orders.length === 1 ? "order" : "orders"}
+              {orders.length === 1
+                ? "order"
+                : "orders"}
             </span>
           </div>
 
@@ -278,7 +326,8 @@ const Orders = () => {
               </h3>
 
               <p className="mt-2 text-sm leading-6 text-gray-500">
-                Your successful purchases will appear here.
+                Your successful purchases will
+                appear here.
               </p>
 
               <Link
@@ -296,6 +345,7 @@ const Orders = () => {
                   key={order.id}
                   className="rounded-2xl border border-[#292929] bg-[#111111] p-5 transition hover:border-[#C9A227]/50 sm:p-6"
                 >
+                  {/* DESKTOP */}
                   <div className="hidden items-center gap-6 md:flex">
                     <div className="min-w-[190px]">
                       <p className="text-[10px] uppercase tracking-[0.15em] text-gray-600">
@@ -363,6 +413,7 @@ const Orders = () => {
                     </Link>
                   </div>
 
+                  {/* MOBILE */}
                   <div className="md:hidden">
                     <div className="flex items-start justify-between gap-4">
                       <div>

@@ -1,5 +1,9 @@
-
-import { Link, useParams } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import {
+  Link,
+  useLocation,
+  useParams,
+} from "react-router-dom";
 import {
   FiArrowLeft,
   FiCheck,
@@ -8,110 +12,348 @@ import {
   FiTruck,
   FiCreditCard,
   FiMail,
-  FiPhone,
+  FiAlertCircle,
 } from "react-icons/fi";
+
+import { useAuth } from "../../context/AuthContext";
+import api from "../../services/api";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  "http://localhost:5000/api";
 
 const OrderDetails = () => {
   const { id } = useParams();
+  const location = useLocation();
 
-  // Frontend-only dummy order
-  const order = {
-    id: id || "VD-2026-00124",
-    date: "September 14, 2026",
-    status: "Delivered",
-    paymentMethod: "Razorpay",
-    paymentStatus: "Paid",
+  const { isAuthenticated, isAdmin } = useAuth();
 
-    customer: {
-      name: "Suravi Ghosh",
-      email: "suravi@example.com",
-      phone: "+91 98765 43210",
-    },
+  const isAdminOrderPage =
+    isAdmin &&
+    location.pathname.startsWith(
+      "/admin/orders/"
+    );
 
-    shippingAddress: {
-      address: "123 Main Street",
-      city: "Kolkata",
-      state: "West Bengal",
-      postalCode: "700001",
-      country: "India",
-    },
+  const backPath = isAdminOrderPage
+    ? "/admin/orders"
+    : "/orders";
 
-    items: [
-      {
-        id: 1,
-        name: "Premium Headphones",
-        category: "Electronics",
-        price: 129,
-        quantity: 1,
-        image:
-          "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=500&q=80",
-      },
-      {
-        id: 2,
-        name: "Minimal Watch",
-        category: "Accessories",
-        price: 89,
-        quantity: 2,
-        image:
-          "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80",
-      },
-    ],
+  const pageLabel = isAdminOrderPage
+    ? "Admin order details"
+    : "Order details";
 
-    subtotal: 307,
-    shipping: 0,
-    total: 307,
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // ==================================================
+  // FETCH ORDER
+  // ==================================================
+
+  useEffect(() => {
+    const fetchOrder = async () => {
+      if (!isAuthenticated || !id) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError("");
+
+        const response = await api.get(
+          `/orders/${id}`
+        );
+
+        if (!response.data?.order) {
+          throw new Error("Order not found.");
+        }
+
+        setOrder(response.data.order);
+      } catch (error) {
+        console.error(
+          "FETCH ORDER DETAILS ERROR:",
+          error
+        );
+
+        setError(
+          error.response?.data?.message ||
+            error.message ||
+            "Unable to load order details."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrder();
+  }, [id, isAuthenticated]);
+
+  // ==================================================
+  // FORMATTED DATE
+  // ==================================================
+
+  const formattedDate = useMemo(() => {
+    if (!order?.createdAt) {
+      return "—";
+    }
+
+    return new Date(
+      order.createdAt
+    ).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  }, [order]);
+
+  // ==================================================
+  // TOTAL ITEMS
+  // ==================================================
+
+  const totalItems = useMemo(() => {
+    return (
+      order?.items?.reduce(
+        (total, item) =>
+          total + Number(item.quantity || 0),
+        0
+      ) || 0
+    );
+  }, [order]);
+
+  // ==================================================
+  // SUBTOTAL
+  // ==================================================
+
+  const subtotal = useMemo(() => {
+    return (
+      order?.items?.reduce(
+        (total, item) =>
+          total +
+          Number(item.price || 0) *
+            Number(item.quantity || 0),
+        0
+      ) || 0
+    );
+  }, [order]);
+
+  // ==================================================
+  // SHIPPING
+  // ==================================================
+
+  const shipping = Math.max(
+    0,
+    Number(order?.totalAmount || 0) - subtotal
+  );
+
+  // ==================================================
+  // STATUS
+  // ==================================================
+
+  const getStatusIndex = (status) => {
+    switch (status) {
+      case "Pending":
+        return 0;
+
+      case "Processing":
+        return 1;
+
+      case "Shipped":
+        return 2;
+
+      case "Delivered":
+        return 3;
+
+      default:
+        return -1;
+    }
   };
+
+  const currentStatusIndex = getStatusIndex(
+    order?.status
+  );
+
+  const statuses = [
+    "Order placed",
+    "Processing",
+    "Shipped",
+    "Delivered",
+  ];
+
+  const getStatusClasses = (status) => {
+    switch (status) {
+      case "Delivered":
+        return "border-green-900/40 bg-green-950/30 text-green-400";
+
+      case "Shipped":
+        return "border-blue-900/40 bg-blue-950/30 text-blue-400";
+
+      case "Processing":
+        return "border-[#C9A227]/30 bg-[#C9A227]/10 text-[#E2C45A]";
+
+      case "Pending":
+        return "border-yellow-900/40 bg-yellow-950/20 text-yellow-400";
+
+      case "Cancelled":
+        return "border-red-900/40 bg-red-950/30 text-red-400";
+
+      case "Returned":
+        return "border-orange-900/40 bg-orange-950/30 text-orange-400";
+
+      default:
+        return "border-[#292929] bg-[#111111] text-gray-400";
+    }
+  };
+
+  // ==================================================
+  // NOT AUTHENTICATED
+  // ==================================================
+
+  if (!isAuthenticated) {
+    return (
+      <main className="min-h-screen bg-[#0B0B0B] px-5 py-20 text-white">
+        <div className="mx-auto max-w-xl rounded-2xl border border-[#292929] bg-[#151515] p-8 text-center">
+          <h1 className="text-2xl font-semibold">
+            Login required
+          </h1>
+
+          <p className="mt-3 text-sm leading-6 text-gray-500">
+            Sign in to view this order.
+          </p>
+
+          <Link
+            to="/login"
+            className="mt-6 inline-flex rounded-xl bg-[#C9A227] px-6 py-3 text-sm font-medium text-black"
+          >
+            Sign In
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  // ==================================================
+  // LOADING
+  // ==================================================
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-[#0B0B0B] px-5 py-20 text-[#F5F5F5]">
+        <div className="mx-auto max-w-3xl rounded-2xl border border-[#292929] bg-[#151515] p-10 text-center sm:p-16">
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-[#292929] border-t-[#C9A227]" />
+
+          <p className="mt-5 text-sm text-gray-500">
+            Loading order details...
+          </p>
+        </div>
+      </main>
+    );
+  }
+
+  // ==================================================
+  // ERROR
+  // ==================================================
+
+  if (error || !order) {
+    return (
+      <main className="min-h-screen bg-[#0B0B0B] px-5 py-20 text-white">
+        <div className="mx-auto max-w-2xl rounded-2xl border border-[#292929] bg-[#151515] p-8 text-center sm:p-12">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#0B0B0B] text-[#C9A227]">
+            <FiAlertCircle size={26} />
+          </div>
+
+          <h1 className="mt-6 text-2xl font-semibold sm:text-3xl">
+            Order not found
+          </h1>
+
+          <p className="mt-3 text-sm leading-7 text-gray-500">
+            {error || "This order is unavailable."}
+          </p>
+
+          <Link
+            to={backPath}
+            className="mt-7 inline-flex items-center gap-2 rounded-xl bg-[#C9A227] px-6 py-3.5 text-sm font-medium text-black transition hover:bg-[#E2C45A]"
+          >
+            <FiArrowLeft size={16} />
+
+            {isAdminOrderPage
+              ? "Back to Order Management"
+              : "Back to Orders"}
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  // ==================================================
+  // CUSTOMER DETAILS
+  // ==================================================
+
+  const customerName =
+    order.user?.name ||
+    order.address?.fullname ||
+    "Customer";
+
+  const customerEmail =
+    order.user?.email || "—";
 
   return (
     <main className="min-h-screen bg-[#0B0B0B] text-[#F5F5F5]">
+      {/* =================================================
+          HEADER
+      ================================================= */}
 
-      {/* ================= HEADER ================= */}
       <section className="border-b border-[#292929] bg-black">
         <div className="mx-auto max-w-7xl px-5 py-8 sm:px-8 sm:py-12 lg:px-10 xl:px-12">
-
           <Link
-            to="/orders"
+            to={backPath}
             className="inline-flex items-center gap-2 text-sm text-gray-500 transition hover:text-[#C9A227]"
           >
             <FiArrowLeft size={16} />
-            Back to Orders
+
+            {isAdminOrderPage
+              ? "Back to Order Management"
+              : "Back to Orders"}
           </Link>
 
           <div className="mt-6 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-
             <div>
               <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-[#C9A227] sm:text-sm">
-                Order details
+                {pageLabel}
               </p>
 
               <h1 className="mt-3 break-all text-2xl font-semibold tracking-tight sm:text-3xl lg:text-4xl">
-                #{order.id}
+                #{order._id}
               </h1>
 
               <p className="mt-2 text-sm text-gray-500">
-                Placed on {order.date}
+                Placed on {formattedDate}
               </p>
             </div>
 
-            <span className="w-fit rounded-full border border-green-900/40 bg-green-950/30 px-4 py-2 text-xs font-medium text-green-400">
+            <span
+              className={`w-fit rounded-full border px-4 py-2 text-xs font-medium ${getStatusClasses(
+                order.status
+              )}`}
+            >
               {order.status}
             </span>
-
           </div>
         </div>
       </section>
 
-      {/* ================= CONTENT ================= */}
+      {/* =================================================
+          MAIN CONTENT
+      ================================================= */}
+
       <section className="mx-auto max-w-7xl px-5 py-8 sm:px-8 sm:py-10 lg:px-10 lg:py-14 xl:px-12">
-
         <div className="grid gap-8 lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px]">
-
-          {/* LEFT */}
           <div className="space-y-6">
+            {/* =================================================
+                ORDER STATUS
+            ================================================= */}
 
-            {/* ================= ORDER STATUS ================= */}
             <section className="rounded-2xl border border-[#292929] bg-[#151515] p-5 sm:p-7">
-
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <h2 className="text-lg font-semibold">
@@ -119,7 +361,9 @@ const OrderDetails = () => {
                   </h2>
 
                   <p className="mt-1 text-xs text-gray-500 sm:text-sm">
-                    Track the progress of your order.
+                    {isAdminOrderPage
+                      ? "Monitor the current order progress."
+                      : "Track the progress of your order."}
                   </p>
                 </div>
 
@@ -129,91 +373,135 @@ const OrderDetails = () => {
                 />
               </div>
 
-              {/* Desktop status line */}
-              <div className="mt-8 hidden sm:flex items-center">
-
-                <div className="flex flex-1 items-center">
-
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#C9A227] text-black">
-                    <FiCheck size={18} />
-                  </div>
-
-                  <div className="h-px flex-1 bg-[#C9A227]" />
-
-                </div>
-
-                <div className="flex flex-1 items-center">
-
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#C9A227] text-black">
-                    <FiCheck size={18} />
-                  </div>
-
-                  <div className="h-px flex-1 bg-[#C9A227]" />
-
-                </div>
-
-                <div className="flex flex-1 items-center">
-
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#C9A227] text-black">
-                    <FiCheck size={18} />
-                  </div>
-
-                  <div className="h-px flex-1 bg-[#C9A227]" />
-
-                </div>
-
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#C9A227] text-black">
-                  <FiCheck size={18} />
-                </div>
-
-              </div>
-
-              {/* Mobile status */}
-              <div className="mt-7 space-y-5 sm:hidden">
-
-                {[
-                  "Order placed",
-                  "Processing",
-                  "Shipped",
-                  "Delivered",
-                ].map((status) => (
-                  <div
-                    key={status}
-                    className="flex items-center gap-3"
+              {order.status === "Cancelled" ||
+              order.status === "Returned" ? (
+                <div className="mt-7">
+                  <span
+                    className={`inline-flex rounded-full border px-4 py-2 text-sm font-medium ${getStatusClasses(
+                      order.status
+                    )}`}
                   >
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#C9A227] text-black">
-                      <FiCheck size={15} />
-                    </div>
+                    {order.status}
+                  </span>
+                </div>
+              ) : (
+                <>
+                  {/* Desktop */}
+                  <div className="mt-8 hidden items-center sm:flex">
+                    {statuses.map(
+                      (status, index) => {
+                        const completed =
+                          index <=
+                          currentStatusIndex;
 
-                    <span className="text-sm text-gray-300">
-                      {status}
-                    </span>
+                        const isLast =
+                          index ===
+                          statuses.length - 1;
+
+                        return (
+                          <div
+                            key={status}
+                            className="flex flex-1 items-center"
+                          >
+                            <div
+                              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
+                                completed
+                                  ? "bg-[#C9A227] text-black"
+                                  : "border border-[#292929] bg-[#0B0B0B] text-gray-600"
+                              }`}
+                            >
+                              {completed ? (
+                                <FiCheck size={18} />
+                              ) : (
+                                index + 1
+                              )}
+                            </div>
+
+                            {!isLast && (
+                              <div
+                                className={`h-px flex-1 ${
+                                  index <
+                                  currentStatusIndex
+                                    ? "bg-[#C9A227]"
+                                    : "bg-[#292929]"
+                                }`}
+                              />
+                            )}
+                          </div>
+                        );
+                      }
+                    )}
                   </div>
-                ))}
 
-              </div>
+                  {/* Mobile */}
+                  <div className="mt-7 space-y-5 sm:hidden">
+                    {statuses.map(
+                      (status, index) => {
+                        const completed =
+                          index <=
+                          currentStatusIndex;
 
-              <div className="mt-5 hidden justify-between text-xs text-gray-500 sm:flex">
-                <span>Order placed</span>
-                <span>Processing</span>
-                <span>Shipped</span>
-                <span>Delivered</span>
-              </div>
+                        return (
+                          <div
+                            key={status}
+                            className="flex items-center gap-3"
+                          >
+                            <div
+                              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+                                completed
+                                  ? "bg-[#C9A227] text-black"
+                                  : "border border-[#292929] bg-[#0B0B0B] text-gray-600"
+                              }`}
+                            >
+                              {completed ? (
+                                <FiCheck size={15} />
+                              ) : (
+                                index + 1
+                              )}
+                            </div>
 
+                            <span
+                              className={`text-sm ${
+                                completed
+                                  ? "text-gray-200"
+                                  : "text-gray-600"
+                              }`}
+                            >
+                              {status}
+                            </span>
+                          </div>
+                        );
+                      }
+                    )}
+                  </div>
+
+                  <div className="mt-5 hidden justify-between text-xs text-gray-500 sm:flex">
+                    {statuses.map((status) => (
+                      <span key={status}>
+                        {status}
+                      </span>
+                    ))}
+                  </div>
+                </>
+              )}
             </section>
 
-            {/* ================= ORDER ITEMS ================= */}
+            {/* =================================================
+                ITEMS
+            ================================================= */}
+
             <section className="rounded-2xl border border-[#292929] bg-[#151515] p-5 sm:p-7">
-
               <div className="flex items-center justify-between border-b border-[#292929] pb-5">
-
                 <div>
                   <h2 className="text-lg font-semibold">
-                    Items in your order
+                    Items in this order
                   </h2>
 
                   <p className="mt-1 text-xs text-gray-500">
-                    {order.items.length} different products
+                    {totalItems}{" "}
+                    {totalItems === 1
+                      ? "item"
+                      : "items"}
                   </p>
                 </div>
 
@@ -221,74 +509,119 @@ const OrderDetails = () => {
                   size={21}
                   className="text-[#C9A227]"
                 />
-
               </div>
 
               <div className="mt-5 space-y-4">
+                {order.items.map((item, index) => {
+                  const product =
+                    item.productId;
 
-                {order.items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex gap-4 rounded-xl border border-[#292929] bg-[#0B0B0B] p-4"
-                  >
+                  const productId =
+                    typeof product === "object"
+                      ? product?._id
+                      : product;
 
-                    <Link
-                      to={`/products/${item.id}`}
-                      className="h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-[#151515] sm:h-28 sm:w-28"
+                  const productName =
+                    typeof product === "object"
+                      ? product?.name
+                      : "Product";
+
+                  const productCategory =
+                    typeof product === "object"
+                      ? product?.category
+                      : "Product";
+
+                  const productImage =
+                    productId
+                      ? `${API_BASE_URL}/products/${productId}/image`
+                      : "";
+
+                  return (
+                    <div
+                      key={`${productId}-${index}`}
+                      className="flex gap-4 rounded-xl border border-[#292929] bg-[#0B0B0B] p-4"
                     >
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="h-full w-full object-cover transition hover:scale-105"
-                      />
-                    </Link>
-
-                    <div className="min-w-0 flex-1">
-
-                      <p className="text-[10px] uppercase tracking-[0.15em] text-gray-600 sm:text-xs">
-                        {item.category}
-                      </p>
-
                       <Link
-                        to={`/products/${item.id}`}
-                        className="mt-1 block text-sm font-semibold transition hover:text-[#C9A227] sm:text-base"
+                        to={
+                          isAdminOrderPage
+                            ? "#"
+                            : `/products/${productId}`
+                        }
+                        onClick={(e) => {
+                          if (isAdminOrderPage) {
+                            e.preventDefault();
+                          }
+                        }}
+                        className="h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-[#151515] sm:h-28 sm:w-28"
                       >
-                        {item.name}
+                        {productImage && (
+                          <img
+                            src={productImage}
+                            alt={productName}
+                            className="h-full w-full object-cover"
+                          />
+                        )}
                       </Link>
 
-                      <div className="mt-3 flex flex-wrap items-center gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] uppercase tracking-[0.15em] text-gray-600 sm:text-xs">
+                          {productCategory}
+                        </p>
 
-                        <span className="text-xs text-gray-500">
-                          Quantity: {item.quantity}
-                        </span>
+                        {isAdminOrderPage ? (
+                          <p className="mt-1 text-sm font-semibold sm:text-base">
+                            {productName}
+                          </p>
+                        ) : (
+                          <Link
+                            to={`/products/${productId}`}
+                            className="mt-1 block text-sm font-semibold transition hover:text-[#C9A227] sm:text-base"
+                          >
+                            {productName}
+                          </Link>
+                        )}
 
-                        <span className="h-1 w-1 rounded-full bg-gray-700" />
+                        <div className="mt-3 flex flex-wrap items-center gap-3">
+                          <span className="text-xs text-gray-500">
+                            Quantity:{" "}
+                            {item.quantity}
+                          </span>
 
-                        <span className="text-sm font-medium text-[#C9A227]">
-                          ${item.price}
-                        </span>
+                          <span className="h-1 w-1 rounded-full bg-gray-700" />
 
+                          <span className="text-sm font-medium text-[#C9A227]">
+                            ₹
+                            {Number(
+                              item.price || 0
+                            ).toFixed(2)}
+                          </span>
+                        </div>
+
+                        <p className="mt-2 text-sm font-semibold text-white">
+                          ₹
+                          {(
+                            Number(
+                              item.price || 0
+                            ) *
+                            Number(
+                              item.quantity || 0
+                            )
+                          ).toFixed(2)}
+                        </p>
                       </div>
-
-                      <p className="mt-2 text-sm font-semibold text-white">
-                        ${(item.price * item.quantity).toFixed(2)}
-                      </p>
-
                     </div>
-
-                  </div>
-                ))}
-
+                  );
+                })}
               </div>
-
             </section>
 
-            {/* ================= SHIPPING + CUSTOMER ================= */}
-            <div className="grid gap-6 md:grid-cols-2">
+            {/* =================================================
+                ADDRESS + CUSTOMER
+            ================================================= */}
 
+            <div className="grid gap-6 md:grid-cols-2">
               {/* Shipping */}
               <section className="rounded-2xl border border-[#292929] bg-[#151515] p-5 sm:p-6">
-
                 <div className="flex items-center gap-3">
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0B0B0B] text-[#C9A227]">
                     <FiMapPin size={17} />
@@ -301,60 +634,60 @@ const OrderDetails = () => {
 
                 <div className="mt-5 text-sm leading-6 text-gray-400">
                   <p className="font-medium text-gray-200">
-                    {order.customer.name}
-                  </p>
-
-                  <p>{order.shippingAddress.address}</p>
-
-                  <p>
-                    {order.shippingAddress.city},{" "}
-                    {order.shippingAddress.state}
+                    {order.address?.fullname}
                   </p>
 
                   <p>
-                    {order.shippingAddress.postalCode},{" "}
-                    {order.shippingAddress.country}
+                    {order.address?.street}
+                  </p>
+
+                  <p>
+                    {order.address?.city},{" "}
+                    {order.address?.state}
+                  </p>
+
+                  <p>
+                    {order.address?.zipCode},{" "}
+                    {order.address?.country}
                   </p>
                 </div>
-
               </section>
 
-              {/* Customer */}
+              {/* Contact */}
               <section className="rounded-2xl border border-[#292929] bg-[#151515] p-5 sm:p-6">
-
                 <div className="flex items-center gap-3">
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0B0B0B] text-[#C9A227]">
                     <FiMail size={17} />
                   </div>
 
                   <h2 className="text-base font-semibold">
-                    Contact details
+                    Customer details
                   </h2>
                 </div>
 
                 <div className="mt-5 space-y-3 text-sm text-gray-400">
+                  <p>
+                    <span className="text-gray-600">
+                      Name:
+                    </span>{" "}
+                    {customerName}
+                  </p>
 
                   <p>
                     <span className="text-gray-600">
                       Email:
                     </span>{" "}
-                    {order.customer.email}
+                    {customerEmail}
                   </p>
-
-                  <p className="flex items-center gap-2">
-                    <FiPhone size={14} className="text-[#C9A227]" />
-                    {order.customer.phone}
-                  </p>
-
                 </div>
-
               </section>
-
             </div>
 
-            {/* ================= PAYMENT ================= */}
-            <section className="rounded-2xl border border-[#292929] bg-[#151515] p-5 sm:p-7">
+            {/* =================================================
+                PAYMENT
+            ================================================= */}
 
+            <section className="rounded-2xl border border-[#292929] bg-[#151515] p-5 sm:p-7">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0B0B0B] text-[#C9A227]">
                   <FiCreditCard size={17} />
@@ -372,14 +705,13 @@ const OrderDetails = () => {
               </div>
 
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
-
                 <div className="rounded-xl border border-[#292929] bg-[#0B0B0B] p-4">
                   <p className="text-[10px] uppercase tracking-wider text-gray-600">
                     Payment method
                   </p>
 
                   <p className="mt-2 text-sm font-medium text-gray-200">
-                    {order.paymentMethod}
+                    Razorpay
                   </p>
                 </div>
 
@@ -389,32 +721,40 @@ const OrderDetails = () => {
                   </p>
 
                   <p className="mt-2 text-sm font-medium text-green-400">
-                    {order.paymentStatus}
+                    Paid
                   </p>
                 </div>
 
+                <div className="rounded-xl border border-[#292929] bg-[#0B0B0B] p-4 sm:col-span-2">
+                  <p className="text-[10px] uppercase tracking-wider text-gray-600">
+                    Payment ID
+                  </p>
+
+                  <p className="mt-2 break-all text-sm font-medium text-gray-200">
+                    {order.paymentId || "—"}
+                  </p>
+                </div>
               </div>
-
             </section>
-
           </div>
 
-          {/* ================= SUMMARY ================= */}
-          <aside className="h-fit rounded-2xl border border-[#292929] bg-[#151515] p-5 sm:p-6 lg:sticky lg:top-24">
+          {/* =================================================
+              SUMMARY
+          ================================================= */}
 
+          <aside className="h-fit rounded-2xl border border-[#292929] bg-[#151515] p-5 sm:p-6 lg:sticky lg:top-24">
             <h2 className="text-lg font-semibold">
               Order summary
             </h2>
 
             <div className="mt-6 space-y-4 border-b border-[#292929] pb-6">
-
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-500">
                   Subtotal
                 </span>
 
                 <span className="text-gray-200">
-                  ${order.subtotal.toFixed(2)}
+                  ₹{subtotal.toFixed(2)}
                 </span>
               </div>
 
@@ -424,38 +764,45 @@ const OrderDetails = () => {
                 </span>
 
                 <span className="text-gray-200">
-                  {order.shipping === 0
+                  {shipping === 0
                     ? "Free"
-                    : `$${order.shipping.toFixed(2)}`}
+                    : `₹${shipping.toFixed(2)}`}
                 </span>
               </div>
-
             </div>
 
             <div className="mt-6 flex items-center justify-between">
-
               <span className="font-medium">
                 Total
               </span>
 
               <span className="text-2xl font-semibold text-[#C9A227]">
-                ${order.total.toFixed(2)}
+                ₹
+                {Number(
+                  order.totalAmount || 0
+                ).toFixed(2)}
               </span>
-
             </div>
 
-            <Link
-              to="/shop"
-              className="mt-7 flex w-full items-center justify-center gap-2 rounded-xl border border-[#C9A227] px-5 py-3.5 text-sm font-medium text-[#C9A227] transition hover:bg-[#C9A227] hover:text-black"
-            >
-              Continue Shopping
-            </Link>
-
+            {isAdminOrderPage ? (
+              <Link
+                to="/admin/orders"
+                className="mt-7 flex w-full items-center justify-center gap-2 rounded-xl border border-[#C9A227] px-5 py-3.5 text-sm font-medium text-[#C9A227] transition hover:bg-[#C9A227] hover:text-black"
+              >
+                <FiArrowLeft size={16} />
+                Back to Order Management
+              </Link>
+            ) : (
+              <Link
+                to="/shop"
+                className="mt-7 flex w-full items-center justify-center gap-2 rounded-xl border border-[#C9A227] px-5 py-3.5 text-sm font-medium text-[#C9A227] transition hover:bg-[#C9A227] hover:text-black"
+              >
+                Continue Shopping
+              </Link>
+            )}
           </aside>
-
         </div>
       </section>
-
     </main>
   );
 };

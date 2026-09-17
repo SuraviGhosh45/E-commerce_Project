@@ -1,4 +1,5 @@
-import { Link, useLocation } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   FiCheck,
   FiArrowRight,
@@ -8,33 +9,89 @@ import {
   FiCreditCard,
 } from "react-icons/fi";
 
+import { useCart } from "../../context/CartContext";
+
 const OrderSuccess = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const { clearCart } = useCart();
 
   const orderData = location.state || {};
+  const order = orderData.order;
 
-  const orderId = orderData.orderId || "VD-2026-00001";
-  const paymentMethod = orderData.paymentMethod || "razorpay";
-  const total = orderData.total || 0;
+  const orderId =
+    order?._id || orderData.orderId;
+
+  const paymentMethod =
+    orderData.paymentMethod || "razorpay";
+
   const items = orderData.items || [];
-  const customer = orderData.customer || {};
 
-  const orderDate = new Date().toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  const customer =
+    orderData.customer || {};
+
+  const total = Number(
+    order?.totalAmount ??
+      orderData.total ??
+      0
+  );
+
+  const orderStatus =
+    order?.status || "Processing";
+
+  const paymentId =
+    order?.paymentId ||
+    orderData.paymentId ||
+    "";
+
+  useEffect(() => {
+    if (!orderId) {
+      navigate("/orders", {
+        replace: true,
+      });
+      return;
+    }
+
+    clearCart();
+  }, [orderId, clearCart, navigate]);
+
+  if (!orderId) {
+    return null;
+  }
+
+  const orderDate = order?.createdAt
+    ? new Date(
+        order.createdAt
+      ).toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : new Date().toLocaleDateString(
+        "en-IN",
+        {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        }
+      );
+
+  const totalItems = items.reduce(
+    (count, item) =>
+      count + Number(item.quantity || 0),
+    0
+  );
 
   return (
     <main className="min-h-screen bg-[#0B0B0B] text-[#F5F5F5]">
-
-      {/* ================= SUCCESS HERO ================= */}
       <section className="border-b border-[#292929] bg-black">
         <div className="mx-auto max-w-4xl px-5 py-16 text-center sm:px-8 sm:py-20 lg:py-24">
-
-          {/* Success Icon */}
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#C9A227] text-black shadow-[0_0_40px_rgba(201,162,39,0.15)] sm:h-24 sm:w-24">
-            <FiCheck size={38} strokeWidth={2.5} />
+            <FiCheck
+              size={38}
+              strokeWidth={2.5}
+            />
           </div>
 
           <p className="mt-8 text-[11px] font-medium uppercase tracking-[0.3em] text-[#C9A227] sm:text-sm">
@@ -46,35 +103,25 @@ const OrderSuccess = () => {
           </h1>
 
           <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-gray-400 sm:text-base">
-            Your order has been placed successfully. We've received your
-            request and will keep you updated as it moves through delivery.
+            Your payment was verified and your order has been successfully placed.
           </p>
 
-          {/* Order ID */}
           <div className="mx-auto mt-8 w-fit rounded-xl border border-[#292929] bg-[#151515] px-5 py-4">
             <p className="text-[10px] uppercase tracking-[0.2em] text-gray-600">
               Order ID
             </p>
 
-            <p className="mt-2 text-base font-semibold text-[#C9A227] sm:text-lg">
+            <p className="mt-2 break-all text-base font-semibold text-[#C9A227] sm:text-lg">
               #{orderId}
             </p>
           </div>
-
         </div>
       </section>
 
-      {/* ================= CONTENT ================= */}
       <section className="mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-14 lg:px-10 lg:py-16">
-
         <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
-
-          {/* LEFT */}
           <div className="space-y-6">
-
-            {/* Order overview */}
             <section className="rounded-2xl border border-[#292929] bg-[#151515] p-5 sm:p-7">
-
               <div className="flex items-center gap-3 border-b border-[#292929] pb-5">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0B0B0B] text-[#C9A227]">
                   <FiPackage size={18} />
@@ -92,10 +139,10 @@ const OrderSuccess = () => {
               </div>
 
               <div className="mt-6 grid gap-4 sm:grid-cols-3">
-
                 <div className="rounded-xl border border-[#292929] bg-[#0B0B0B] p-4">
                   <div className="flex items-center gap-2 text-gray-500">
                     <FiCalendar size={14} />
+
                     <span className="text-[10px] uppercase tracking-wider">
                       Date
                     </span>
@@ -109,22 +156,21 @@ const OrderSuccess = () => {
                 <div className="rounded-xl border border-[#292929] bg-[#0B0B0B] p-4">
                   <div className="flex items-center gap-2 text-gray-500">
                     <FiShoppingBag size={14} />
+
                     <span className="text-[10px] uppercase tracking-wider">
                       Items
                     </span>
                   </div>
 
                   <p className="mt-2 text-sm font-medium text-gray-200">
-                    {items.reduce(
-                      (count, item) => count + item.quantity,
-                      0
-                    )}
+                    {totalItems}
                   </p>
                 </div>
 
                 <div className="rounded-xl border border-[#292929] bg-[#0B0B0B] p-4">
                   <div className="flex items-center gap-2 text-gray-500">
                     <FiCreditCard size={14} />
+
                     <span className="text-[10px] uppercase tracking-wider">
                       Payment
                     </span>
@@ -136,13 +182,10 @@ const OrderSuccess = () => {
                       : "Razorpay"}
                   </p>
                 </div>
-
               </div>
             </section>
 
-            {/* Items */}
             <section className="rounded-2xl border border-[#292929] bg-[#151515] p-5 sm:p-7">
-
               <div className="flex items-center justify-between border-b border-[#292929] pb-5">
                 <div>
                   <h2 className="text-lg font-semibold">
@@ -156,11 +199,10 @@ const OrderSuccess = () => {
               </div>
 
               <div className="mt-5 space-y-4">
-
                 {items.length > 0 ? (
                   items.map((item) => (
                     <div
-                      key={item.id}
+                      key={item.id || item._id}
                       className="flex gap-4 rounded-xl border border-[#292929] bg-[#0B0B0B] p-4"
                     >
                       <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-[#151515] sm:h-24 sm:w-24">
@@ -181,36 +223,38 @@ const OrderSuccess = () => {
                         </p>
 
                         <p className="mt-3 text-sm font-semibold text-[#C9A227]">
-                          ${(item.price * item.quantity).toFixed(2)}
+                          ₹
+                          {(
+                            Number(item.price || 0) *
+                            Number(item.quantity || 0)
+                          ).toFixed(2)}
                         </p>
                       </div>
                     </div>
                   ))
                 ) : (
                   <p className="py-6 text-sm text-gray-500">
-                    Order items will appear here.
+                    Order items are available in your order details.
                   </p>
                 )}
-
               </div>
             </section>
 
-            {/* Customer */}
             <section className="rounded-2xl border border-[#292929] bg-[#151515] p-5 sm:p-7">
-
               <h2 className="text-lg font-semibold">
                 Customer information
               </h2>
 
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
-
                 <div>
                   <p className="text-[10px] uppercase tracking-wider text-gray-600">
                     Name
                   </p>
 
                   <p className="mt-2 text-sm text-gray-300">
-                    {customer.fullName || "Customer"}
+                    {customer.fullName ||
+                      order?.user?.name ||
+                      "Customer"}
                   </p>
                 </div>
 
@@ -220,18 +264,16 @@ const OrderSuccess = () => {
                   </p>
 
                   <p className="mt-2 break-all text-sm text-gray-300">
-                    {customer.email || "Not provided"}
+                    {customer.email ||
+                      order?.user?.email ||
+                      "Not provided"}
                   </p>
                 </div>
-
               </div>
             </section>
-
           </div>
 
-          {/* RIGHT SUMMARY */}
           <aside className="h-fit rounded-2xl border border-[#292929] bg-[#151515] p-5 sm:p-6 lg:sticky lg:top-24">
-
             <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-[#C9A227]">
               Complete
             </p>
@@ -241,14 +283,13 @@ const OrderSuccess = () => {
             </h2>
 
             <div className="mt-6 space-y-4 border-b border-[#292929] pb-6">
-
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-500">
                   Payment
                 </span>
 
                 <span className="font-medium text-green-400">
-                  {paymentMethod === "cod" ? "Pending" : "Paid"}
+                  Paid
                 </span>
               </div>
 
@@ -258,25 +299,31 @@ const OrderSuccess = () => {
                 </span>
 
                 <span className="font-medium text-[#C9A227]">
-                  Processing
+                  {orderStatus}
                 </span>
               </div>
 
+              <div className="flex items-start justify-between gap-4 text-sm">
+                <span className="text-gray-500">
+                  Payment ID
+                </span>
+
+                <span className="max-w-[200px] break-all text-right text-xs text-gray-400">
+                  {paymentId || "—"}
+                </span>
+              </div>
             </div>
 
             <div className="mt-6 flex items-center justify-between">
-
               <span className="font-medium">
                 Total
               </span>
 
               <span className="text-2xl font-semibold text-[#C9A227]">
-                ${Number(total).toFixed(2)}
+                ₹{total.toFixed(2)}
               </span>
-
             </div>
 
-            {/* View order */}
             <Link
               to={`/orders/${orderId}`}
               className="mt-7 flex w-full items-center justify-center gap-2 rounded-xl bg-[#C9A227] px-5 py-4 text-sm font-medium text-black transition hover:bg-[#E2C45A]"
@@ -285,7 +332,6 @@ const OrderSuccess = () => {
               <FiArrowRight size={17} />
             </Link>
 
-            {/* My orders */}
             <Link
               to="/orders"
               className="mt-3 flex w-full items-center justify-center rounded-xl border border-[#292929] px-5 py-4 text-sm font-medium text-gray-300 transition hover:border-[#C9A227] hover:text-[#C9A227]"
@@ -293,20 +339,15 @@ const OrderSuccess = () => {
               View My Orders
             </Link>
 
-            {/* Continue shopping */}
             <Link
               to="/shop"
               className="mt-5 flex w-full items-center justify-center text-sm text-gray-500 transition hover:text-[#C9A227]"
             >
               Continue Shopping
             </Link>
-
           </aside>
-
         </div>
-
       </section>
-
     </main>
   );
 };

@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   FiUser,
   FiMail,
@@ -7,22 +6,43 @@ import {
   FiShield,
   FiSave,
   FiX,
+  FiLoader,
 } from "react-icons/fi";
 
 const UserForm = ({
   initialData = null,
   onSubmit,
   onCancel,
+  loading = false,
 }) => {
   const [formData, setFormData] = useState({
-    name: initialData?.name || "",
-    email: initialData?.email || "",
+    name: "",
+    email: "",
     password: "",
-    role: initialData?.role || "user",
+    role: "user",
   });
+
+  const [formError, setFormError] = useState("");
 
   const roles = ["user", "admin"];
 
+  // --------------------------------------------------
+  // LOAD USER DATA
+  // --------------------------------------------------
+  useEffect(() => {
+    setFormData({
+      name: initialData?.name || "",
+      email: initialData?.email || "",
+      password: "",
+      role: initialData?.role || "user",
+    });
+
+    setFormError("");
+  }, [initialData]);
+
+  // --------------------------------------------------
+  // HANDLE INPUT
+  // --------------------------------------------------
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -30,12 +50,71 @@ const UserForm = ({
       ...prev,
       [name]: value,
     }));
+
+    setFormError("");
   };
 
-  const handleSubmit = (e) => {
+  // --------------------------------------------------
+  // SUBMIT
+  // --------------------------------------------------
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    onSubmit?.(formData);
+    if (loading) {
+      return;
+    }
+
+    const name = formData.name.trim();
+    const email = formData.email.trim().toLowerCase();
+    const password = formData.password.trim();
+
+    if (!name) {
+      setFormError("Name is required.");
+      return;
+    }
+
+    if (!email) {
+      setFormError("Email is required.");
+      return;
+    }
+
+    if (!formData.role) {
+      setFormError("Please select a role.");
+      return;
+    }
+
+    // Password is optional during edit.
+    // If entered, it must satisfy the minimum length.
+    if (password && password.length < 8) {
+      setFormError(
+        "New password must be at least 8 characters."
+      );
+      return;
+    }
+
+    const updatedData = {
+      name,
+      email,
+      role: formData.role,
+    };
+
+    // Only send password when the admin entered one.
+    if (password) {
+      updatedData.password = password;
+    }
+
+    try {
+      setFormError("");
+      await onSubmit?.(updatedData);
+    } catch (error) {
+      console.error("USER FORM SUBMIT ERROR:", error);
+
+      setFormError(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to update user."
+      );
+    }
   };
 
   return (
@@ -46,23 +125,26 @@ const UserForm = ({
       {/* Header */}
       <div className="border-b border-[#292929] pb-5">
         <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#C9A227] sm:text-xs">
-          {initialData ? "Edit User" : "New User"}
+          Edit User
         </p>
 
         <h2 className="mt-2 text-xl font-semibold text-white sm:text-2xl">
-          {initialData
-            ? "Update user information"
-            : "Create a new user"}
+          Update user information
         </h2>
 
         <p className="mt-2 text-xs leading-6 text-gray-500 sm:text-sm">
-          Add user details and assign the appropriate role.
+          Update the user's details, password or access role.
         </p>
       </div>
 
-      {/* Form */}
-      <div className="mt-7 space-y-6">
+      {/* Error */}
+      {formError && (
+        <div className="mt-5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+          {formError}
+        </div>
+      )}
 
+      <div className="mt-7 space-y-6">
         {/* Name */}
         <div>
           <label
@@ -84,10 +166,9 @@ const UserForm = ({
               type="text"
               value={formData.name}
               onChange={handleChange}
-              placeholder="Enter full name"
-              autoComplete="name"
+              disabled={loading}
               required
-              className="w-full rounded-xl border border-[#292929] bg-[#0B0B0B] py-3.5 pl-11 pr-4 text-sm text-white outline-none placeholder:text-gray-600 transition focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/20"
+              className="w-full rounded-xl border border-[#292929] bg-[#0B0B0B] py-3.5 pl-11 pr-4 text-sm text-white outline-none placeholder:text-gray-600 transition focus:border-[#C9A227] disabled:cursor-not-allowed disabled:opacity-50"
             />
           </div>
         </div>
@@ -113,10 +194,9 @@ const UserForm = ({
               type="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder="you@example.com"
-              autoComplete="email"
+              disabled={loading}
               required
-              className="w-full rounded-xl border border-[#292929] bg-[#0B0B0B] py-3.5 pl-11 pr-4 text-sm text-white outline-none placeholder:text-gray-600 transition focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/20"
+              className="w-full rounded-xl border border-[#292929] bg-[#0B0B0B] py-3.5 pl-11 pr-4 text-sm text-white outline-none placeholder:text-gray-600 transition focus:border-[#C9A227] disabled:cursor-not-allowed disabled:opacity-50"
             />
           </div>
         </div>
@@ -127,7 +207,7 @@ const UserForm = ({
             htmlFor="password"
             className="mb-2 block text-sm font-medium text-gray-200"
           >
-            {initialData ? "New password" : "Password"}
+            New password
           </label>
 
           <div className="relative">
@@ -142,20 +222,16 @@ const UserForm = ({
               type="password"
               value={formData.password}
               onChange={handleChange}
-              placeholder={
-                initialData
-                  ? "Leave blank to keep current password"
-                  : "Create a password"
-              }
+              disabled={loading}
+              placeholder="Leave blank to keep current password"
               autoComplete="new-password"
-              required={!initialData}
-              className="w-full rounded-xl border border-[#292929] bg-[#0B0B0B] py-3.5 pl-11 pr-4 text-sm text-white outline-none placeholder:text-gray-600 transition focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/20"
+              minLength={8}
+              className="w-full rounded-xl border border-[#292929] bg-[#0B0B0B] py-3.5 pl-11 pr-4 text-sm text-white outline-none placeholder:text-gray-600 transition focus:border-[#C9A227] disabled:cursor-not-allowed disabled:opacity-50"
             />
           </div>
 
           <p className="mt-2 text-xs text-gray-600">
-            Use a strong password with uppercase, lowercase, number and
-            special character.
+            Leave this field empty to keep the existing password.
           </p>
         </div>
 
@@ -179,67 +255,53 @@ const UserForm = ({
               name="role"
               value={formData.role}
               onChange={handleChange}
-              className="w-full appearance-none rounded-xl border border-[#292929] bg-[#0B0B0B] py-3.5 pl-11 pr-4 text-sm text-gray-200 outline-none transition focus:border-[#C9A227]"
+              disabled={loading}
+              className="w-full appearance-none rounded-xl border border-[#292929] bg-[#0B0B0B] py-3.5 pl-11 pr-4 text-sm text-gray-200 outline-none transition focus:border-[#C9A227] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {roles.map((role) => (
-                <option
-                  key={role}
-                  value={role}
-                >
-                  {role === "admin" ? "Administrator" : "Customer"}
+                <option key={role} value={role}>
+                  {role === "admin"
+                    ? "Administrator"
+                    : "Customer"}
                 </option>
               ))}
             </select>
-          </div>
-        </div>
-
-        {/* Role info */}
-        <div className="rounded-xl border border-[#292929] bg-[#0B0B0B] p-4">
-          <div className="flex gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#151515] text-[#C9A227]">
-              <FiShield size={16} />
-            </div>
-
-            <div>
-              <p className="text-xs font-medium text-gray-200">
-                Role access
-              </p>
-
-              <p className="mt-1 text-[11px] leading-5 text-gray-600">
-                Administrators can manage products, orders, users and
-                analytics. Customers have access to shopping and order
-                features.
-              </p>
-            </div>
           </div>
         </div>
       </div>
 
       {/* Actions */}
       <div className="mt-8 flex flex-col-reverse gap-3 border-t border-[#292929] pt-6 sm:flex-row sm:justify-end">
-
-        {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="flex items-center justify-center gap-2 rounded-xl border border-[#292929] px-5 py-3.5 text-sm font-medium text-gray-300 transition hover:border-gray-500 hover:text-white"
-          >
-            <FiX size={16} />
-            Cancel
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={loading}
+          className="flex items-center justify-center gap-2 rounded-xl border border-[#292929] px-5 py-3.5 text-sm font-medium text-gray-300 transition hover:border-gray-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <FiX size={16} />
+          Cancel
+        </button>
 
         <button
           type="submit"
-          className="flex items-center justify-center gap-2 rounded-xl bg-[#C9A227] px-5 py-3.5 text-sm font-medium text-black transition hover:bg-[#E2C45A]"
+          disabled={loading}
+          className="flex items-center justify-center gap-2 rounded-xl bg-[#C9A227] px-5 py-3.5 text-sm font-medium text-black transition hover:bg-[#E2C45A] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          <FiSave size={17} />
-
-          {initialData
-            ? "Update User"
-            : "Create User"}
+          {loading ? (
+            <>
+              <FiLoader
+                size={17}
+                className="animate-spin"
+              />
+              Updating...
+            </>
+          ) : (
+            <>
+              <FiSave size={17} />
+              Update User
+            </>
+          )}
         </button>
-
       </div>
     </form>
   );

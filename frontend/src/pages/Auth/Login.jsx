@@ -6,12 +6,9 @@ import {
   FiArrowRight,
 } from "react-icons/fi";
 import { FcGoogle } from "react-icons/fc";
-import axios from "axios";
 
 import { useAuth } from "../../context/AuthContext";
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL 
+import api from "../../services/api";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -19,7 +16,6 @@ const Login = () => {
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
-
   const { login } = useAuth();
 
   const [formData, setFormData] = useState({
@@ -34,73 +30,133 @@ const Login = () => {
       ...prev,
       [name]: value,
     }));
+
+    setError("");
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  setError("");
+    setError("");
 
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const response = await axios.post(
-      `${API_BASE_URL}/auth/login`,
-      {
-        email: formData.email,
+      const response = await api.post("/auth/login", {
+        email: formData.email.trim().toLowerCase(),
         password: formData.password,
-      },
-      {
-        withCredentials: true,
+      });
+
+      console.log("LOGIN RESPONSE:", response.data);
+
+      /*
+       * Support both:
+       *
+       * {
+       *   _id,
+       *   name,
+       *   email,
+       *   role,
+       *   token
+       * }
+       *
+       * and:
+       *
+       * {
+       *   user: {
+       *      _id,
+       *      name,
+       *      email,
+       *      role
+       *   },
+       *   token
+       * }
+       */
+
+      const responseUser =
+        response.data?.user || response.data;
+
+      const token =
+        response.data?.token ||
+        response.data?.user?.token;
+
+      if (!token) {
+        console.error(
+          "LOGIN RESPONSE DOES NOT CONTAIN TOKEN:",
+          response.data
+        );
+
+        throw new Error(
+          "Login successful, but no authentication token was returned by the server."
+        );
       }
-    );
 
-    console.log("Login response:", response.data);
+      const userData = {
+        id:
+          responseUser?._id ||
+          responseUser?.id ||
+          "",
 
-    const userData = {
-  id: response.data._id,
-  name: response.data.name,
-  email: response.data.email,
-  role: response.data.role,
-  token: response.data.token,
-};
+        name: responseUser?.name || "",
 
-    login(userData);
+        email:
+          responseUser?.email ||
+          formData.email.trim().toLowerCase(),
 
-    if (userData.role === "admin") {
-      navigate("/admin/dashboard");
-    } else {
-      navigate("/");
+        role: responseUser?.role || "user",
+
+        token,
+      };
+
+      console.log("USER DATA SAVED:", {
+        ...userData,
+        token: userData.token
+          ? "TOKEN_PRESENT"
+          : "NO_TOKEN",
+      });
+
+      login(userData);
+
+      // Verify what was actually stored.
+      const storedUser =
+        localStorage.getItem("vendora_user");
+
+      console.log(
+        "STORED USER:",
+        storedUser
+          ? JSON.parse(storedUser)
+          : null
+      );
+
+      if (userData.role === "admin") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/");
+      }
+    } catch (err) {
+      console.error("LOGIN ERROR:", err);
+
+      const message =
+        err.response?.data?.message ||
+        err.message ||
+        "Login failed. Please check your credentials.";
+
+      setError(message);
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error("Login error:", err);
-
-    const message =
-      err.response?.data?.message ||
-      "Login failed. Please check your credentials.";
-
-    setError(message);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <main className="min-h-screen bg-[#0B0B0B] px-4 py-6 text-white sm:px-6 sm:py-8 md:py-10 lg:px-8 lg:py-12">
-
       <div className="mx-auto w-full max-w-7xl overflow-hidden rounded-2xl border border-[#292929] bg-[#151515] shadow-2xl sm:rounded-3xl">
-
         <div className="grid lg:grid-cols-2">
-
           {/* ================= LEFT BRANDING ================= */}
           <section className="relative hidden min-h-[720px] overflow-hidden bg-black p-8 sm:p-10 lg:flex lg:flex-col lg:justify-between xl:p-12 2xl:min-h-[800px]">
-
-            {/* Decorative circles */}
             <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full border border-[#C9A227]/15 sm:-right-32 sm:-top-32 sm:h-80 sm:w-80" />
 
             <div className="absolute -bottom-32 -left-24 h-72 w-72 rounded-full border border-[#C9A227]/10 sm:-bottom-40 sm:-left-40 sm:h-96 sm:w-96" />
 
-            {/* Logo */}
             <div className="relative z-10">
               <Link to="/">
                 <img
@@ -111,9 +167,7 @@ const Login = () => {
               </Link>
             </div>
 
-            {/* Branding */}
             <div className="relative z-10 max-w-xl">
-
               <p className="mb-4 text-xs font-medium uppercase tracking-[0.25em] text-[#C9A227] sm:mb-5 sm:text-sm sm:tracking-[0.3em]">
                 Welcome back
               </p>
@@ -127,12 +181,12 @@ const Login = () => {
               </h1>
 
               <p className="mt-5 max-w-md text-sm leading-7 text-gray-400 sm:mt-6 sm:text-base">
-                Discover products you'll love, manage your orders, and enjoy a
-                seamless shopping experience with Vendora.
+                Discover products you'll love, manage
+                your orders, and enjoy a seamless
+                shopping experience with Vendora.
               </p>
 
               <div className="mt-8 grid grid-cols-2 gap-4 sm:mt-10">
-
                 <div className="rounded-xl border border-[#292929] bg-[#0B0B0B] p-4">
                   <p className="text-xl font-semibold text-[#C9A227]">
                     10K+
@@ -152,24 +206,18 @@ const Login = () => {
                     Customers
                   </p>
                 </div>
-
               </div>
             </div>
 
             <p className="relative z-10 text-xs text-gray-500">
               © 2026 Vendora. All rights reserved.
             </p>
-
           </section>
 
           {/* ================= LOGIN FORM ================= */}
           <section className="flex min-h-[700px] items-center bg-[#151515] px-5 py-10 sm:px-8 sm:py-12 md:px-12 lg:min-h-[720px] lg:px-10 xl:px-16 2xl:px-20">
-
             <div className="mx-auto w-full max-w-md">
-
-              {/* Mobile / Tablet Header */}
               <div className="mb-8 flex items-center justify-between sm:mb-10 lg:hidden">
-
                 <Link to="/">
                   <img
                     src="/vendora_logo_white.png"
@@ -184,12 +232,9 @@ const Login = () => {
                 >
                   Create account
                 </Link>
-
               </div>
 
-              {/* Heading */}
               <div className="mb-7 sm:mb-8">
-
                 <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.22em] text-[#C9A227] sm:text-xs sm:tracking-[0.25em]">
                   Account
                 </p>
@@ -199,20 +244,17 @@ const Login = () => {
                 </h2>
 
                 <p className="mt-3 max-w-sm text-sm leading-6 text-gray-400 sm:text-base">
-                  Sign in to continue to your Vendora account.
+                  Sign in to continue to your Vendora
+                  account.
                 </p>
-
               </div>
 
-              {/* Form */}
               <form
                 onSubmit={handleSubmit}
                 className="space-y-4 sm:space-y-5"
               >
-
                 {/* Email */}
                 <div>
-
                   <label
                     htmlFor="email"
                     className="mb-2 block text-sm font-medium text-gray-200"
@@ -232,14 +274,11 @@ const Login = () => {
                     disabled={loading}
                     className="w-full rounded-xl border border-[#292929] bg-[#0B0B0B] px-4 py-3.5 text-sm text-white outline-none placeholder:text-gray-600 transition focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/20 disabled:opacity-60 sm:py-4"
                   />
-
                 </div>
 
                 {/* Password */}
                 <div>
-
                   <div className="mb-2 flex items-center justify-between">
-
                     <label
                       htmlFor="password"
                       className="block text-sm font-medium text-gray-200"
@@ -253,15 +292,17 @@ const Login = () => {
                     >
                       Forgot password?
                     </Link>
-
                   </div>
 
                   <div className="relative">
-
                     <input
                       id="password"
                       name="password"
-                      type={showPassword ? "text" : "password"}
+                      type={
+                        showPassword
+                          ? "text"
+                          : "password"
+                      }
                       placeholder="Enter your password"
                       value={formData.password}
                       onChange={handleChange}
@@ -274,7 +315,9 @@ const Login = () => {
                     <button
                       type="button"
                       onClick={() =>
-                        setShowPassword((current) => !current)
+                        setShowPassword(
+                          (current) => !current
+                        )
                       }
                       disabled={loading}
                       aria-label={
@@ -290,14 +333,11 @@ const Login = () => {
                         <FiEye size={18} />
                       )}
                     </button>
-
                   </div>
-
                 </div>
 
                 {/* Remember me */}
                 <div className="flex items-center gap-3 pt-1">
-
                   <input
                     id="remember"
                     type="checkbox"
@@ -310,7 +350,6 @@ const Login = () => {
                   >
                     Remember me
                   </label>
-
                 </div>
 
                 {/* Error */}
@@ -326,7 +365,9 @@ const Login = () => {
                   disabled={loading}
                   className="group mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[#C9A227] px-5 py-3.5 text-sm font-medium text-black transition hover:bg-[#E2C45A] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 sm:py-4"
                 >
-                  {loading ? "Signing in..." : "Sign in"}
+                  {loading
+                    ? "Signing in..."
+                    : "Sign in"}
 
                   {!loading && (
                     <FiArrowRight
@@ -335,12 +376,10 @@ const Login = () => {
                     />
                   )}
                 </button>
-
               </form>
 
               {/* Divider */}
               <div className="my-6 flex items-center gap-4 sm:my-7">
-
                 <div className="h-px flex-1 bg-[#292929]" />
 
                 <span className="text-[11px] text-gray-600">
@@ -348,7 +387,6 @@ const Login = () => {
                 </span>
 
                 <div className="h-px flex-1 bg-[#292929]" />
-
               </div>
 
               {/* Google */}
@@ -363,7 +401,6 @@ const Login = () => {
               {/* Register */}
               <p className="mt-7 hidden text-center text-sm text-gray-400 lg:block">
                 Don't have an account?{" "}
-
                 <Link
                   to="/register"
                   className="font-medium text-[#C9A227] underline underline-offset-4 transition hover:text-[#E2C45A]"
@@ -371,10 +408,8 @@ const Login = () => {
                   Create one
                 </Link>
               </p>
-
             </div>
           </section>
-
         </div>
       </div>
     </main>
