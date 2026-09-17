@@ -1,51 +1,99 @@
-
 import { useAuth } from "../../context/AuthContext";
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FiArrowRight, FiMail } from "react-icons/fi";
+import axios from "axios";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL;
 
 const VerifyOTP = () => {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const location = useLocation();
   const navigate = useNavigate();
 
   const { login } = useAuth();
 
-  // Data passed from Register page
+  // Data passed from Register.jsx
   const email = location.state?.email || "";
   const name = location.state?.name || "Vendora User";
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     setError("");
+    setSuccess("");
+
+    if (!email) {
+      setError(
+        "Email information is missing. Please return to registration and try again."
+      );
+      return;
+    }
 
     if (otp.length !== 6) {
       setError("Please enter a valid 6-digit OTP.");
       return;
     }
 
-    // Frontend-only for now
-    console.log("OTP:", otp);
-    console.log("Email:", email);
+    try {
+      setLoading(true);
 
-    setLoading(true);
+      const response = await axios.post(
+        `${API_BASE_URL}/auth/verify-otp`,
+        {
+          email,
+          otp,
+        },
+        {
+          withCredentials: true,
+        }
+      );
 
-    const userData = {
-      name: name,
-      email: email,
-      role: "user",
-    };
+      console.log("OTP verification response:", response.data);
 
-    login(userData);
+      /*
+        Depending on your backend response, you may receive
+        user information here.
 
-    // Simulate successful verification
-    setTimeout(() => {
-      navigate("/");
-    }, 500);
+        For now we use the registered user's name/email
+        and the default customer role.
+      */
+
+      const userData = {
+        id: response.data?.user?.id || response.data?.user?._id,
+        name: response.data?.user?.name || name,
+        email: response.data?.user?.email || email,
+        role: response.data?.user?.role || "user",
+      };
+
+      login(userData);
+
+      setSuccess(
+        response.data?.message ||
+          "Email verified successfully. Redirecting..."
+      );
+
+      setTimeout(() => {
+        navigate("/");
+      }, 700);
+    } catch (err) {
+      console.error("OTP verification error:", err);
+
+      const message =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "OTP verification failed. Please try again.";
+
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleOtpChange = (e) => {
@@ -56,11 +104,59 @@ const VerifyOTP = () => {
     }
   };
 
+  const handleResendOtp = async () => {
+    setError("");
+    setSuccess("");
+
+    if (!email) {
+      setError("Email information is missing.");
+      return;
+    }
+
+    try {
+      setResendLoading(true);
+
+      /*
+        Your backend must expose a resend OTP endpoint for this
+        button to work.
+
+        Change the endpoint below if your backend uses a
+        different route.
+      */
+      const response = await axios.post(
+        `${API_BASE_URL}/auth/resend-otp`,
+        {
+          email,
+        },
+        {
+          withCredentials: true,
+        }
+      );
+
+      setSuccess(
+        response.data?.message ||
+          "A new OTP has been sent to your email."
+      );
+    } catch (err) {
+      console.error("Resend OTP error:", err);
+
+      const message =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Unable to resend OTP.";
+
+      setError(message);
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-[calc(100vh-80px)] bg-[#0B0B0B] px-6 py-12 text-white">
+
       <div className="mx-auto grid max-w-6xl overflow-hidden rounded-3xl border border-[#292929] bg-[#151515] lg:grid-cols-2">
 
-        {/* Left Branding Section */}
+        {/* ================= LEFT ================= */}
         <div className="relative hidden min-h-[700px] overflow-hidden bg-black p-12 text-white lg:flex lg:flex-col lg:justify-between">
 
           <div className="relative z-10">
@@ -90,13 +186,11 @@ const VerifyOTP = () => {
             </p>
           </div>
 
-          {/* Decorative elements */}
           <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full border border-[#C9A227]/20" />
           <div className="absolute -bottom-32 -left-20 h-80 w-80 rounded-full border border-[#C9A227]/10" />
-
         </div>
 
-        {/* OTP Section */}
+        {/* ================= RIGHT ================= */}
         <div className="flex min-h-[700px] items-center justify-center bg-[#151515] p-8 sm:p-12">
 
           <div className="w-full max-w-md">
@@ -128,14 +222,16 @@ const VerifyOTP = () => {
               </p>
 
               {email && (
-                <p className="mt-1 font-medium text-[#C9A227]">
+                <p className="mt-1 break-all font-medium text-[#C9A227]">
                   {email}
                 </p>
               )}
-
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form
+              onSubmit={handleSubmit}
+              className="space-y-6"
+            >
 
               {/* OTP */}
               <div>
@@ -155,7 +251,8 @@ const VerifyOTP = () => {
                   value={otp}
                   onChange={handleOtpChange}
                   placeholder="000000"
-                  className="w-full rounded-xl border border-[#292929] bg-[#0B0B0B] px-4 py-4 text-center text-2xl font-semibold tracking-[0.5em] text-white outline-none placeholder:text-gray-600 focus:border-[#C9A227]"
+                  disabled={loading}
+                  className="w-full rounded-xl border border-[#292929] bg-[#0B0B0B] px-4 py-4 text-center text-2xl font-semibold tracking-[0.5em] text-white outline-none placeholder:text-gray-600 transition focus:border-[#C9A227] disabled:opacity-60"
                 />
               </div>
 
@@ -163,6 +260,13 @@ const VerifyOTP = () => {
               {error && (
                 <p className="rounded-lg border border-red-900/40 bg-red-950/30 px-4 py-3 text-sm text-red-400">
                   {error}
+                </p>
+              )}
+
+              {/* Success */}
+              {success && (
+                <p className="rounded-lg border border-green-900/40 bg-green-950/30 px-4 py-3 text-sm text-green-400">
+                  {success}
                 </p>
               )}
 
@@ -179,12 +283,18 @@ const VerifyOTP = () => {
 
               {/* Resend */}
               <div className="text-center">
+
                 <button
                   type="button"
-                  className="text-sm font-medium text-gray-400 underline underline-offset-4 transition hover:text-[#C9A227]"
+                  onClick={handleResendOtp}
+                  disabled={resendLoading}
+                  className="text-sm font-medium text-gray-400 underline underline-offset-4 transition hover:text-[#C9A227] disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  Resend OTP
+                  {resendLoading
+                    ? "Sending..."
+                    : "Resend OTP"}
                 </button>
+
               </div>
 
             </form>
@@ -192,6 +302,7 @@ const VerifyOTP = () => {
             {/* Login */}
             <div className="mt-8 text-center text-sm text-gray-400">
               Already verified?{" "}
+
               <Link
                 to="/login"
                 className="font-semibold text-[#C9A227] underline underline-offset-4 transition hover:text-[#E2C45A]"
@@ -209,4 +320,3 @@ const VerifyOTP = () => {
 };
 
 export default VerifyOTP;
-

@@ -1,5 +1,6 @@
 import userModel from "../model/user.model.js";
 import getToken from "../utils/getToken.js";
+// import sendEmail from "../utils/sendEmail.js";
 
 const verifyOtp = async (req, res) => {
     try{
@@ -54,6 +55,7 @@ const verifyOtp = async (req, res) => {
             sameSite: "strict",
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
+
         return res.status(200).json({
             message: "Email verified successfully",
             token

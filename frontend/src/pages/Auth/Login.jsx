@@ -1,15 +1,26 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FiEye, FiEyeOff, FiArrowRight } from "react-icons/fi";
+import {
+  FiEye,
+  FiEyeOff,
+  FiArrowRight,
+} from "react-icons/fi";
 import { FcGoogle } from "react-icons/fc";
+import axios from "axios";
+
 import { useAuth } from "../../context/AuthContext";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL 
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const navigate = useNavigate();
-  const { login, loginAsAdmin, loginAsUser } = useAuth();
+
+  const { login } = useAuth();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -25,24 +36,58 @@ const Login = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    // Frontend-only login for now
+  setError("");
+
+  try {
+    setLoading(true);
+
+    const response = await axios.post(
+      `${API_BASE_URL}/auth/login`,
+      {
+        email: formData.email,
+        password: formData.password,
+      },
+      {
+        withCredentials: true,
+      }
+    );
+
+    console.log("Login response:", response.data);
+
     const userData = {
-      id: "demo-user",
-      name: "Suravi",
-      email: formData.email,
-      role: "user",
-    };
+  id: response.data._id,
+  name: response.data.name,
+  email: response.data.email,
+  role: response.data.role,
+  token: response.data.token,
+};
 
     login(userData);
 
-    navigate("/");
-  };
+    if (userData.role === "admin") {
+      navigate("/admin/dashboard");
+    } else {
+      navigate("/");
+    }
+  } catch (err) {
+    console.error("Login error:", err);
+
+    const message =
+      err.response?.data?.message ||
+      "Login failed. Please check your credentials.";
+
+    setError(message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <main className="min-h-screen bg-[#0B0B0B] px-4 py-6 text-white sm:px-6 sm:py-8 md:py-10 lg:px-8 lg:py-12">
+
       <div className="mx-auto w-full max-w-7xl overflow-hidden rounded-2xl border border-[#292929] bg-[#151515] shadow-2xl sm:rounded-3xl">
 
         <div className="grid lg:grid-cols-2">
@@ -114,6 +159,7 @@ const Login = () => {
             <p className="relative z-10 text-xs text-gray-500">
               © 2026 Vendora. All rights reserved.
             </p>
+
           </section>
 
           {/* ================= LOGIN FORM ================= */}
@@ -183,7 +229,8 @@ const Login = () => {
                     onChange={handleChange}
                     autoComplete="email"
                     required
-                    className="w-full rounded-xl border border-[#292929] bg-[#0B0B0B] px-4 py-3.5 text-sm text-white outline-none placeholder:text-gray-600 transition focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/20 sm:py-4"
+                    disabled={loading}
+                    className="w-full rounded-xl border border-[#292929] bg-[#0B0B0B] px-4 py-3.5 text-sm text-white outline-none placeholder:text-gray-600 transition focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/20 disabled:opacity-60 sm:py-4"
                   />
 
                 </div>
@@ -220,12 +267,16 @@ const Login = () => {
                       onChange={handleChange}
                       autoComplete="current-password"
                       required
-                      className="w-full rounded-xl border border-[#292929] bg-[#0B0B0B] px-4 py-3.5 pr-12 text-sm text-white outline-none placeholder:text-gray-600 transition focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/20 sm:py-4"
+                      disabled={loading}
+                      className="w-full rounded-xl border border-[#292929] bg-[#0B0B0B] px-4 py-3.5 pr-12 text-sm text-white outline-none placeholder:text-gray-600 transition focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/20 disabled:opacity-60 sm:py-4"
                     />
 
                     <button
                       type="button"
-                      onClick={() => setShowPassword(!showPassword)}
+                      onClick={() =>
+                        setShowPassword((current) => !current)
+                      }
+                      disabled={loading}
                       aria-label={
                         showPassword
                           ? "Hide password"
@@ -261,37 +312,28 @@ const Login = () => {
                   </label>
 
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    loginAsAdmin();
-                    navigate("/admin/dashboard");
-                  }}
-                >
-                  Test Admin
-                </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    loginAsUser();
-                    navigate("/");
-                  }}
-                >
-                  Test Customer
-                </button>
+                {/* Error */}
+                {error && (
+                  <div className="rounded-xl border border-red-900/40 bg-red-950/30 px-4 py-3 text-sm text-red-400">
+                    {error}
+                  </div>
+                )}
 
                 {/* Login */}
                 <button
                   type="submit"
-                  className="group mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[#C9A227] px-5 py-3.5 text-sm font-medium text-black transition hover:bg-[#E2C45A] active:scale-[0.99] sm:py-4"
+                  disabled={loading}
+                  className="group mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[#C9A227] px-5 py-3.5 text-sm font-medium text-black transition hover:bg-[#E2C45A] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 sm:py-4"
                 >
-                  Sign in
+                  {loading ? "Signing in..." : "Sign in"}
 
-                  <FiArrowRight
-                    size={17}
-                    className="transition-transform group-hover:translate-x-1"
-                  />
+                  {!loading && (
+                    <FiArrowRight
+                      size={17}
+                      className="transition-transform group-hover:translate-x-1"
+                    />
+                  )}
                 </button>
 
               </form>
@@ -318,7 +360,7 @@ const Login = () => {
                 Continue with Google
               </button>
 
-              {/* Register - desktop */}
+              {/* Register */}
               <p className="mt-7 hidden text-center text-sm text-gray-400 lg:block">
                 Don't have an account?{" "}
 
@@ -332,6 +374,7 @@ const Login = () => {
 
             </div>
           </section>
+
         </div>
       </div>
     </main>

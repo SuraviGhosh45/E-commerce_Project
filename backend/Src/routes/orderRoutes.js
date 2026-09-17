@@ -1,12 +1,37 @@
-import express from "express"
-import authMiddleware from '../middleware/authMiddleware.js'
-import adminMiddleware from '../middleware/adminMiddleware.js'
-import {createOrder,getMyOrders,getAllOrders,updateOrderStatus} from "../controllers/orderController.js"
+import express from "express";
 
-const router=express.Router()
+import authMiddleware from "../middleware/authMiddleware.js";
+import adminMiddleware from "../middleware/adminMiddleware.js";
 
-router.route('/').post(authMiddleware.protect,createOrder).get(authMiddleware.protect,adminMiddleware.admin,getAllOrders)
-router.route('/myorders').get(authMiddleware.protect,getMyOrders)
-router.route('/:id/status').put(authMiddleware.protect,adminMiddleware.admin,updateOrderStatus)
+import {
+    getMyOrders,
+    getAllOrders,
+    updateOrderStatus
+} from "../controllers/orderController.js";
 
-export default router
+const router = express.Router();
+
+// User orders
+router.get(
+    "/myorders",
+    authMiddleware.protect,
+    getMyOrders
+);
+
+// Admin - all orders
+router.get(
+    "/",
+    authMiddleware.protect,
+    adminMiddleware.admin,
+    getAllOrders
+);
+
+// Admin - update order status
+router.put(
+    "/:id/status",
+    authMiddleware.protect,
+    adminMiddleware.admin,
+    updateOrderStatus
+);
+
+export default router;

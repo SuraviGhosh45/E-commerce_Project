@@ -1,0 +1,31 @@
+{
+  "name": "vendora",
+  "version": "1.0.0",
+  "description": "e-commerce website",
+  "keywords": [
+    "monolithic"
+  ],
+  "homepage": "https://github.com/SuraviGhosh45/E-commerce_Project#readme",
+  "bugs": {
+    "url": "https://github.com/SuraviGhosh45/E-commerce_Project/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SuraviGhosh45/E-commerce_Project.git"
+  },
+  "license": "ISC",
+  "author": "Suravi Ghosh",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "install": "cd backend && npm install && cd ../frontend && npm install",
+    "dev:server": "cd backend && npm run dev",
+    "dev:client": "cd frontend && npm run dev",
+    "dev": "concurrently npm:dev:server npm:dev:client",
+    "build": "cd frontend && npm run build"
+  },
+  "dependencies": {
+    "axios": "^1.20.0",
+    "concurrently": "^10.0.5"
+  }
+}

@@ -1,27 +1,71 @@
-
-import { createContext, useContext, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 const CartContext = createContext();
 
 const CartProvider = ({ children }) => {
-  const [cartItems, setCartItems] = useState([]);
+  const [cartItems, setCartItems] = useState(() => {
+    const storedCart = localStorage.getItem("vendora_cart");
 
-  // Add product to cart
+    if (!storedCart) {
+      return [];
+    }
+
+    try {
+      const parsedCart = JSON.parse(storedCart);
+      return Array.isArray(parsedCart) ? parsedCart : [];
+    } catch (error) {
+      console.error("Failed to restore cart:", error);
+      localStorage.removeItem("vendora_cart");
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem(
+      "vendora_cart",
+      JSON.stringify(cartItems)
+    );
+  }, [cartItems]);
+
   const addToCart = (product, quantity = 1) => {
+    if (!product?.id) {
+      return;
+    }
+
+    const stock = Number(product.stock || 0);
+    const requestedQuantity = Number(quantity);
+
+    if (stock <= 0 || requestedQuantity <= 0) {
+      return;
+    }
+
     setCartItems((currentItems) => {
       const existingItem = currentItems.find(
         (item) => item.id === product.id
       );
 
       if (existingItem) {
+        const newQuantity = Math.min(
+          Number(existingItem.quantity) +
+            requestedQuantity,
+          stock
+        );
+
         return currentItems.map((item) =>
           item.id === product.id
             ? {
                 ...item,
-                quantity: Math.min(
-                  item.quantity + quantity,
-                  product.stock
-                ),
+                quantity: newQuantity,
+                stock,
+                price: Number(product.price),
+                image: product.image,
+                name: product.name,
+                category: product.category,
               }
             : item
         );
@@ -31,20 +75,25 @@ const CartProvider = ({ children }) => {
         ...currentItems,
         {
           ...product,
-          quantity: Math.min(quantity, product.stock),
+          price: Number(product.price),
+          stock,
+          quantity: Math.min(
+            requestedQuantity,
+            stock
+          ),
         },
       ];
     });
   };
 
-  // Remove product completely
   const removeFromCart = (productId) => {
     setCartItems((currentItems) =>
-      currentItems.filter((item) => item.id !== productId)
+      currentItems.filter(
+        (item) => item.id !== productId
+      )
     );
   };
 
-  // Increase quantity
   const increaseQuantity = (productId) => {
     setCartItems((currentItems) =>
       currentItems.map((item) => {
@@ -52,15 +101,19 @@ const CartProvider = ({ children }) => {
           return item;
         }
 
+        const stock = Number(item.stock || 0);
+
         return {
           ...item,
-          quantity: Math.min(item.quantity + 1, item.stock),
+          quantity: Math.min(
+            Number(item.quantity) + 1,
+            stock
+          ),
         };
       })
     );
   };
 
-  // Decrease quantity
   const decreaseQuantity = (productId) => {
     setCartItems((currentItems) =>
       currentItems
@@ -71,24 +124,30 @@ const CartProvider = ({ children }) => {
 
           return {
             ...item,
-            quantity: item.quantity - 1,
+            quantity: Number(item.quantity) - 1,
           };
         })
         .filter((item) => item.quantity > 0)
     );
   };
 
-  // Update directly to a specific quantity
   const updateQuantity = (productId, quantity) => {
+    const requestedQuantity = Number(quantity);
+
     setCartItems((currentItems) =>
       currentItems.map((item) => {
         if (item.id !== productId) {
           return item;
         }
 
+        const stock = Number(item.stock || 0);
+
         const newQuantity = Math.max(
           1,
-          Math.min(quantity, item.stock)
+          Math.min(
+            requestedQuantity,
+            stock
+          )
         );
 
         return {
@@ -99,20 +158,21 @@ const CartProvider = ({ children }) => {
     );
   };
 
-  // Empty entire cart
   const clearCart = () => {
     setCartItems([]);
   };
 
-  // Total number of products/items
   const cartCount = cartItems.reduce(
-    (total, item) => total + item.quantity,
+    (total, item) =>
+      total + Number(item.quantity || 0),
     0
   );
 
-  // Total price
   const cartTotal = cartItems.reduce(
-    (total, item) => total + item.price * item.quantity,
+    (total, item) =>
+      total +
+      Number(item.price || 0) *
+        Number(item.quantity || 0),
     0
   );
 
@@ -121,16 +181,16 @@ const CartProvider = ({ children }) => {
   return (
     <CartContext.Provider
       value={{
-         cartItems,
-    cartCount,
-    cartTotal,
-    isCartEmpty,
-    addToCart,
-    removeFromCart,
-    increaseQuantity,
-    decreaseQuantity,
-    updateQuantity,
-    clearCart
+        cartItems,
+        cartCount,
+        cartTotal,
+        isCartEmpty,
+        addToCart,
+        removeFromCart,
+        increaseQuantity,
+        decreaseQuantity,
+        updateQuantity,
+        clearCart,
       }}
     >
       {children}
@@ -139,8 +199,15 @@ const CartProvider = ({ children }) => {
 };
 
 const useCart = () => {
-  return useContext(CartContext);
+  const context = useContext(CartContext);
+
+  if (!context) {
+    throw new Error(
+      "useCart must be used inside CartProvider"
+    );
+  }
+
+  return context;
 };
 
 export { CartProvider, useCart };
-

@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   FiArrowLeft,
@@ -18,7 +17,8 @@ import { useAuth } from "../../context/AuthContext";
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+
+  const { isAuthenticated, user } = useAuth();
 
   const {
     cartItems,
@@ -28,8 +28,8 @@ const Checkout = () => {
   } = useCart();
 
   const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
+    fullName: user?.name || "",
+    email: user?.email || "",
     phone: "",
     address: "",
     city: "",
@@ -38,10 +38,23 @@ const Checkout = () => {
     country: "India",
   });
 
-  const [paymentMethod, setPaymentMethod] = useState("razorpay");
+  useEffect(() => {
+    if (!user) return;
 
-  const shippingCost = cartTotal >= 100 ? 0 : 10;
-  const finalTotal = cartTotal + shippingCost;
+    setFormData((prev) => ({
+      ...prev,
+      fullName: user.name || prev.fullName,
+      email: user.email || prev.email,
+    }));
+  }, [user]);
+
+  const paymentMethod = "razorpay";
+
+  const shippingCost =
+    cartTotal >= 100 ? 0 : 10;
+
+  const finalTotal =
+    cartTotal + shippingCost;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -55,71 +68,81 @@ const Checkout = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Frontend-only for now.
-    // Later this will create the real order and initiate payment.
-
-    console.log("Checkout submitted:", {
-      customer: formData,
-      paymentMethod,
-      items: cartItems,
-      total: finalTotal,
-    });
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
 
     navigate("/payment", {
       state: {
-        customer: formData,
-        paymentMethod,
+        customer: {
+          fullName: formData.fullName.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
+        },
+
+        address: {
+          fullname: formData.fullName.trim(),
+          street: formData.address.trim(),
+          city: formData.city.trim(),
+          state: formData.state.trim(),
+          zipCode: formData.postalCode.trim(),
+          country: formData.country.trim(),
+        },
+
         items: cartItems,
+
+        subtotal: cartTotal,
+
+        shipping: shippingCost,
+
         total: finalTotal,
+
+        paymentMethod,
       },
     });
   };
+
   if (!isAuthenticated) {
-  return (
-    <main className="min-h-screen bg-[#0B0B0B] px-5 py-20 text-[#F5F5F5]">
-      <div className="mx-auto max-w-2xl rounded-2xl border border-[#292929] bg-[#151515] p-8 text-center sm:p-12">
+    return (
+      <main className="min-h-screen bg-[#0B0B0B] px-5 py-20 text-[#F5F5F5]">
+        <div className="mx-auto max-w-2xl rounded-2xl border border-[#292929] bg-[#151515] p-8 text-center sm:p-12">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#0B0B0B] text-[#C9A227]">
+            🔒
+          </div>
 
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#0B0B0B] text-[#C9A227]">
-          🔒
+          <h1 className="mt-6 text-2xl font-semibold sm:text-3xl">
+            Login required
+          </h1>
+
+          <p className="mt-3 text-sm leading-7 text-gray-500">
+            Please sign in to your Vendora account before continuing to checkout.
+          </p>
+
+          <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
+            <Link
+              to="/login"
+              className="rounded-xl bg-[#C9A227] px-6 py-3.5 text-sm font-medium text-black transition hover:bg-[#E2C45A]"
+            >
+              Sign In
+            </Link>
+
+            <Link
+              to="/register"
+              className="rounded-xl border border-[#C9A227] px-6 py-3.5 text-sm font-medium text-[#C9A227] transition hover:bg-[#C9A227] hover:text-black"
+            >
+              Create Account
+            </Link>
+          </div>
         </div>
+      </main>
+    );
+  }
 
-        <h1 className="mt-6 text-2xl font-semibold sm:text-3xl">
-          Login required
-        </h1>
-
-        <p className="mt-3 text-sm leading-7 text-gray-500">
-          Please sign in to your Vendora account before continuing to
-          checkout.
-        </p>
-
-        <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
-
-          <Link
-            to="/login"
-            className="rounded-xl bg-[#C9A227] px-6 py-3.5 text-sm font-medium text-black transition hover:bg-[#E2C45A]"
-          >
-            Sign In
-          </Link>
-
-          <Link
-            to="/register"
-            className="rounded-xl border border-[#C9A227] px-6 py-3.5 text-sm font-medium text-[#C9A227] transition hover:bg-[#C9A227] hover:text-black"
-          >
-            Create Account
-          </Link>
-
-        </div>
-      </div>
-    </main>
-  );
-}
-
-  // Empty cart
   if (isCartEmpty) {
     return (
       <main className="min-h-screen bg-[#0B0B0B] px-5 py-16 text-white sm:px-8 lg:px-10">
         <div className="mx-auto max-w-2xl rounded-2xl border border-[#292929] bg-[#151515] p-8 text-center sm:p-12">
-
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#0B0B0B] text-[#C9A227]">
             <FiCreditCard size={26} />
           </div>
@@ -139,7 +162,6 @@ const Checkout = () => {
             Continue Shopping
             <FiArrowRight size={17} />
           </Link>
-
         </div>
       </main>
     );
@@ -147,11 +169,8 @@ const Checkout = () => {
 
   return (
     <main className="min-h-screen bg-[#0B0B0B] text-[#F5F5F5]">
-
-      {/* Header */}
       <section className="border-b border-[#292929] bg-black">
         <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8 sm:py-14 lg:px-10 xl:px-12">
-
           <Link
             to="/cart"
             className="inline-flex items-center gap-2 text-sm text-gray-500 transition hover:text-[#C9A227]"
@@ -170,27 +189,17 @@ const Checkout = () => {
             </h1>
 
             <p className="mt-4 text-sm leading-7 text-gray-400 sm:text-base">
-              Enter your delivery details and choose your preferred payment
-              method.
+              Enter your delivery details and continue to secure payment.
             </p>
           </div>
-
         </div>
       </section>
 
-      {/* Checkout content */}
       <section className="mx-auto max-w-7xl px-5 py-8 sm:px-8 sm:py-10 lg:px-10 lg:py-14 xl:px-12">
-
         <form onSubmit={handleSubmit}>
-
           <div className="grid gap-8 lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px]">
-
-            {/* LEFT */}
             <div className="space-y-6">
-
-              {/* Contact Information */}
               <section className="rounded-2xl border border-[#292929] bg-[#151515] p-5 sm:p-7">
-
                 <div className="flex items-start gap-4">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0B0B0B] text-[#C9A227]">
                     <FiUser size={18} />
@@ -208,8 +217,6 @@ const Checkout = () => {
                 </div>
 
                 <div className="mt-6 grid gap-5 sm:grid-cols-2">
-
-                  {/* Full Name */}
                   <div className="sm:col-span-2">
                     <label
                       htmlFor="fullName"
@@ -238,7 +245,6 @@ const Checkout = () => {
                     </div>
                   </div>
 
-                  {/* Email */}
                   <div>
                     <label
                       htmlFor="email"
@@ -267,7 +273,6 @@ const Checkout = () => {
                     </div>
                   </div>
 
-                  {/* Phone */}
                   <div>
                     <label
                       htmlFor="phone"
@@ -296,12 +301,9 @@ const Checkout = () => {
                     </div>
                   </div>
                 </div>
-
               </section>
 
-              {/* Shipping Address */}
               <section className="rounded-2xl border border-[#292929] bg-[#151515] p-5 sm:p-7">
-
                 <div className="flex items-start gap-4">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0B0B0B] text-[#C9A227]">
                     <FiMapPin size={18} />
@@ -319,8 +321,6 @@ const Checkout = () => {
                 </div>
 
                 <div className="mt-6 space-y-5">
-
-                  {/* Address */}
                   <div>
                     <label
                       htmlFor="address"
@@ -342,9 +342,7 @@ const Checkout = () => {
                     />
                   </div>
 
-                  {/* City / State */}
                   <div className="grid gap-5 sm:grid-cols-2">
-
                     <div>
                       <label
                         htmlFor="city"
@@ -386,12 +384,9 @@ const Checkout = () => {
                         className="w-full rounded-xl border border-[#292929] bg-[#0B0B0B] px-4 py-3.5 text-sm text-white outline-none placeholder:text-gray-600 transition focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/20"
                       />
                     </div>
-
                   </div>
 
-                  {/* Postal / Country */}
                   <div className="grid gap-5 sm:grid-cols-2">
-
                     <div>
                       <label
                         htmlFor="postalCode"
@@ -432,15 +427,11 @@ const Checkout = () => {
                         className="w-full rounded-xl border border-[#292929] bg-[#0B0B0B] px-4 py-3.5 text-sm text-white outline-none placeholder:text-gray-600 transition focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/20"
                       />
                     </div>
-
                   </div>
-
                 </div>
               </section>
 
-              {/* Payment method */}
               <section className="rounded-2xl border border-[#292929] bg-[#151515] p-5 sm:p-7">
-
                 <div className="flex items-start gap-4">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0B0B0B] text-[#C9A227]">
                     <FiCreditCard size={18} />
@@ -452,83 +443,32 @@ const Checkout = () => {
                     </h2>
 
                     <p className="mt-1 text-xs leading-5 text-gray-500 sm:text-sm">
-                      Choose how you'd like to pay.
+                      Complete your payment securely with Razorpay.
                     </p>
                   </div>
                 </div>
 
-                <div className="mt-6 space-y-3">
+                <div className="mt-6 rounded-xl border border-[#C9A227] bg-[#0B0B0B] p-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-white">
+                        Razorpay
+                      </p>
 
-                  {/* Razorpay */}
-                  <label className="flex cursor-pointer items-center gap-4 rounded-xl border border-[#292929] bg-[#0B0B0B] p-4 transition has-[:checked]:border-[#C9A227]">
-
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="razorpay"
-                      checked={paymentMethod === "razorpay"}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                      className="h-4 w-4 accent-[#C9A227]"
-                    />
-
-                    <div className="flex flex-1 items-center justify-between gap-4">
-
-                      <div>
-                        <p className="text-sm font-medium text-white">
-                          Razorpay
-                        </p>
-
-                        <p className="mt-1 text-xs text-gray-600">
-                          UPI, cards, wallets and net banking
-                        </p>
-                      </div>
-
-                      <span className="rounded-md border border-[#292929] px-2 py-1 text-[10px] uppercase tracking-wider text-[#C9A227]">
-                        Online
-                      </span>
-
+                      <p className="mt-1 text-xs text-gray-600">
+                        UPI, cards, wallets and net banking
+                      </p>
                     </div>
-                  </label>
 
-                  {/* Cash on Delivery */}
-                  <label className="flex cursor-pointer items-center gap-4 rounded-xl border border-[#292929] bg-[#0B0B0B] p-4 transition has-[:checked]:border-[#C9A227]">
-
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="cod"
-                      checked={paymentMethod === "cod"}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                      className="h-4 w-4 accent-[#C9A227]"
-                    />
-
-                    <div className="flex flex-1 items-center justify-between gap-4">
-
-                      <div>
-                        <p className="text-sm font-medium text-white">
-                          Cash on Delivery
-                        </p>
-
-                        <p className="mt-1 text-xs text-gray-600">
-                          Pay when your order arrives
-                        </p>
-                      </div>
-
-                      <span className="rounded-md border border-[#292929] px-2 py-1 text-[10px] uppercase tracking-wider text-gray-500">
-                        COD
-                      </span>
-
-                    </div>
-                  </label>
-
+                    <span className="rounded-md border border-[#292929] px-2 py-1 text-[10px] uppercase tracking-wider text-[#C9A227]">
+                      Online
+                    </span>
+                  </div>
                 </div>
               </section>
-
             </div>
 
-            {/* RIGHT ORDER SUMMARY */}
             <aside className="h-fit rounded-2xl border border-[#292929] bg-[#151515] p-5 sm:p-6 lg:sticky lg:top-24">
-
               <h2 className="text-lg font-semibold">
                 Order summary
               </h2>
@@ -537,15 +477,12 @@ const Checkout = () => {
                 {cartCount} {cartCount === 1 ? "item" : "items"}
               </p>
 
-              {/* Items */}
               <div className="mt-6 max-h-[360px] space-y-4 overflow-y-auto pr-1">
-
                 {cartItems.map((item) => (
                   <div
                     key={item.id}
                     className="flex gap-3"
                   >
-
                     <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-[#292929] bg-[#0B0B0B]">
                       <img
                         src={item.image}
@@ -564,24 +501,25 @@ const Checkout = () => {
                       </p>
 
                       <p className="mt-1 text-sm font-medium text-[#C9A227]">
-                        ${(item.price * item.quantity).toFixed(2)}
+                        ₹
+                        {(
+                          Number(item.price) *
+                          Number(item.quantity)
+                        ).toFixed(2)}
                       </p>
                     </div>
-
                   </div>
                 ))}
-
               </div>
 
               <div className="mt-6 space-y-4 border-t border-[#292929] pt-6">
-
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-500">
                     Subtotal
                   </span>
 
                   <span className="text-gray-200">
-                    ${cartTotal.toFixed(2)}
+                    ₹{Number(cartTotal).toFixed(2)}
                   </span>
                 </div>
 
@@ -593,7 +531,7 @@ const Checkout = () => {
                   <span className="text-gray-200">
                     {shippingCost === 0
                       ? "Free"
-                      : `$${shippingCost.toFixed(2)}`}
+                      : `₹${Number(shippingCost).toFixed(2)}`}
                   </span>
                 </div>
 
@@ -602,19 +540,16 @@ const Checkout = () => {
                     Free shipping applied.
                   </p>
                 )}
-
               </div>
 
               <div className="mt-6 flex items-center justify-between border-t border-[#292929] pt-6">
-
                 <span className="font-medium">
                   Total
                 </span>
 
                 <span className="text-2xl font-semibold text-[#C9A227]">
-                  ${finalTotal.toFixed(2)}
+                  ₹{Number(finalTotal).toFixed(2)}
                 </span>
-
               </div>
 
               <button
@@ -626,34 +561,34 @@ const Checkout = () => {
               </button>
 
               <div className="mt-6 border-t border-[#292929] pt-5">
-
                 <div className="flex items-center gap-3">
-                  <FiTruck size={17} className="text-[#C9A227]" />
+                  <FiTruck
+                    size={17}
+                    className="text-[#C9A227]"
+                  />
 
                   <p className="text-xs leading-5 text-gray-500">
-                    Free shipping on orders over $100.
+                    Free shipping on orders over ₹100.
                   </p>
                 </div>
 
                 <div className="mt-3 flex items-center gap-3">
-                  <FiShield size={17} className="text-[#C9A227]" />
+                  <FiShield
+                    size={17}
+                    className="text-[#C9A227]"
+                  />
 
                   <p className="text-xs leading-5 text-gray-500">
                     Your information is kept secure.
                   </p>
                 </div>
-
               </div>
-
             </aside>
-
           </div>
         </form>
       </section>
-
     </main>
   );
 };
 
 export default Checkout;
-

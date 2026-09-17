@@ -1,16 +1,53 @@
-import express from "express"
-import authMiddleware from '../middleware/authMiddleware.js'
-import adminMiddleware from '../middleware/adminMiddleware.js'
+import express from "express";
+import authMiddleware from "../middleware/authMiddleware.js";
+import adminMiddleware from "../middleware/adminMiddleware.js";
+
 import {
-    getProducts, getProductById, createProduct, updateProduct, deleteProduct
+  getProducts,
+  getProductById,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  getProductImage,
 } from "../controllers/productController.js";
-import multer from "multer"
-const router = express.Router()
-const storage = multer.memoryStorage()
-const upload = multer({ storage })
 
+import multer from "multer";
 
-router.route('/').get(getProducts).post(authMiddleware.protect, adminMiddleware.admin, upload.single('image'), createProduct)
-router.route('/:id').get(getProductById).put(authMiddleware.protect, adminMiddleware.admin, updateProduct).delete(authMiddleware.protect, adminMiddleware.admin, deleteProduct)
+const router = express.Router();
 
-export default router
+const storage = multer.memoryStorage();
+
+const upload = multer({
+  storage,
+});
+
+router.get("/", getProducts);
+
+router.post(
+  "/",
+  authMiddleware.protect,
+  adminMiddleware.admin,
+  upload.single("image"),
+  createProduct
+);
+
+router.get("/:id/image", getProductImage);
+
+router.get("/:id", getProductById);
+
+router.put(
+  "/:id",
+  authMiddleware.protect,
+  adminMiddleware.admin,
+  upload.single("image"),
+  updateProduct
+);
+
+router.delete(
+  "/:id",
+  authMiddleware.protect,
+  adminMiddleware.admin,
+  deleteProduct
+);
+
+export default router;
