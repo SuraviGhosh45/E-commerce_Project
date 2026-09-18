@@ -12,5 +12,10 @@ router.post("/google", googleLogin);
 router.post("/verify-otp",verifyOtp);
 router.post("/login",authController.login)
 router.get("/users",authMiddleware.protect,adminMiddleware.admin,authController.getUsers)
+router.put(
+  "/profile",
+  authMiddleware.protect,
+  authController.updateProfile
+);
 
 export default router

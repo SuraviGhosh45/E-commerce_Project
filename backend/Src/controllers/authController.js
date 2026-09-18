@@ -213,9 +213,116 @@ const getUsers = async (req, res) => {
     });
   }
 };
+// ======================================================
+// UPDATE OWN PROFILE
+// ======================================================
+
+const updateProfile = async (req, res) => {
+  try {
+    const { name, email } = req.body || {};
+
+    const normalizedName = String(name || "").trim();
+    const normalizedEmail = String(email || "")
+      .trim()
+      .toLowerCase();
+
+    // ----------------------------------------------
+    // Validate name
+    // ----------------------------------------------
+
+    if (!normalizedName) {
+      return res.status(400).json({
+        message: "Name cannot be empty",
+      });
+    }
+
+    // ----------------------------------------------
+    // Validate email
+    // ----------------------------------------------
+
+    if (!normalizedEmail) {
+      return res.status(400).json({
+        message: "Email cannot be empty",
+      });
+    }
+
+    const emailRegex =
+      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+    if (!emailRegex.test(normalizedEmail)) {
+      return res.status(400).json({
+        message: "Enter a valid email",
+      });
+    }
+
+    // ----------------------------------------------
+    // Find current user
+    // ----------------------------------------------
+
+    const user = await userModel.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User Not Found",
+      });
+    }
+
+    // ----------------------------------------------
+    // Check duplicate email
+    // ----------------------------------------------
+
+    const emailExists = await userModel.findOne({
+      email: normalizedEmail,
+      _id: { $ne: user._id },
+    });
+
+    if (emailExists) {
+      return res.status(400).json({
+        message: "Email is already in use",
+      });
+    }
+
+    // ----------------------------------------------
+    // Update profile
+    // ----------------------------------------------
+
+    user.name = normalizedName;
+    user.email = normalizedEmail;
+
+    const updatedUser = await user.save();
+
+    return res.status(200).json({
+      message: "Profile updated successfully",
+      user: {
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        isVerified: updatedUser.isVerified,
+        authProvider: updatedUser.authProvider,
+      },
+    });
+  } catch (error) {
+    console.error(
+      "UPDATE PROFILE ERROR:",
+      error
+    );
+
+    if (error.code === 11000) {
+      return res.status(400).json({
+        message: "Email is already in use",
+      });
+    }
+
+    return res.status(500).json({
+      message: "Internal Error",
+    });
+  }
+};
 
 export default {
   register,
   login,
   getUsers,
+  updateProfile
 };
