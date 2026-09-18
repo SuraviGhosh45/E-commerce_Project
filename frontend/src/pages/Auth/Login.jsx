@@ -5,7 +5,7 @@ import {
   FiEyeOff,
   FiArrowRight,
 } from "react-icons/fi";
-import { FcGoogle } from "react-icons/fc";
+import { GoogleLogin } from "@react-oauth/google";
 
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
@@ -145,6 +145,73 @@ const Login = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setError("");
+
+    try {
+      setLoading(true);
+
+      const credential = credentialResponse?.credential;
+
+      if (!credential) {
+        throw new Error("Google credential was not received.");
+      }
+
+      const response = await api.post("/auth/google", {
+        credential,
+      });
+
+      console.log("GOOGLE LOGIN RESPONSE:", response.data);
+
+      const responseUser = response.data?.user;
+      const token = response.data?.token;
+
+      if (!responseUser || !token) {
+        throw new Error(
+          "Google login succeeded, but authentication data was not returned."
+        );
+      }
+
+      const userData = {
+        id: responseUser._id || responseUser.id || "",
+        name: responseUser.name || "",
+        email: responseUser.email || "",
+        role: responseUser.role || "user",
+        token,
+        isVerified: responseUser.isVerified ?? true,
+      };
+
+      login(userData);
+
+      console.log("GOOGLE USER SAVED:", {
+        ...userData,
+        token: userData.token ? "TOKEN_PRESENT" : "NO_TOKEN",
+      });
+
+      if (userData.role === "admin") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/");
+      }
+    } catch (err) {
+      console.error("GOOGLE LOGIN ERROR:", err);
+
+      const message =
+        err.response?.data?.message ||
+        err.message ||
+        "Google login failed. Please try again.";
+
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    console.error("Google Sign-In failed");
+    setError("Google Sign-In failed. Please try again.");
   };
 
   return (
@@ -390,13 +457,17 @@ const Login = () => {
               </div>
 
               {/* Google */}
-              <button
-                type="button"
-                className="flex w-full items-center justify-center gap-3 rounded-xl border border-[#292929] bg-[#0B0B0B] px-5 py-3.5 text-sm font-medium text-white transition hover:border-[#C9A227] hover:bg-[#111111] active:scale-[0.99] sm:py-4"
-              >
-                <FcGoogle size={19} />
-                Continue with Google
-              </button>
+              <div className="flex w-full justify-center overflow-hidden rounded-xl">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
+                  theme="filled_black"
+                  size="large"
+                  text="continue_with"
+                  shape="rectangular"
+                  width="400"
+                />
+              </div>
 
               {/* Register */}
               <p className="mt-7 hidden text-center text-sm text-gray-400 lg:block">
