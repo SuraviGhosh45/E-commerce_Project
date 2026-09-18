@@ -87,10 +87,7 @@ const App = () => {
 
         {/* ================= PROFILE ================= */}
 
-        <Route
-          path="/profile"
-          element={<Profile />}
-        />
+        <Route path="/profile" element={<Profile />} />
 
         {/* ================= ADMIN ================= */}
 

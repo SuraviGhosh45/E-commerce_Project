@@ -1,5 +1,6 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useState,
@@ -51,8 +52,7 @@ const CartProvider = ({ children }) => {
 
       if (existingItem) {
         const newQuantity = Math.min(
-          Number(existingItem.quantity) +
-            requestedQuantity,
+          Number(existingItem.quantity) + requestedQuantity,
           stock
         );
 
@@ -158,9 +158,18 @@ const CartProvider = ({ children }) => {
     );
   };
 
-  const clearCart = () => {
-    setCartItems([]);
-  };
+  // FIX:
+  // Keep the clearCart function reference stable
+  // so OrderSuccess useEffect does not run endlessly.
+  const clearCart = useCallback(() => {
+    setCartItems((currentItems) => {
+      if (currentItems.length === 0) {
+        return currentItems;
+      }
+
+      return [];
+    });
+  }, []);
 
   const cartCount = cartItems.reduce(
     (total, item) =>
