@@ -4,8 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FiArrowRight, FiMail } from "react-icons/fi";
 import axios from "axios";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const VerifyOTP = () => {
   const [otp, setOtp] = useState("");
@@ -58,20 +57,49 @@ const VerifyOTP = () => {
       console.log("OTP verification response:", response.data);
 
       /*
-        Depending on your backend response, you may receive
-        user information here.
-
-        For now we use the registered user's name/email
-        and the default customer role.
+        Backend response:
+        {
+          message,
+          token,
+          user: {
+            _id,
+            name,
+            email,
+            role,
+            isVerified
+          }
+        }
       */
 
+      const token = response.data?.token;
+      const verifiedUser = response.data?.user;
+
+      if (!token) {
+        console.error("Token missing from OTP verification response");
+        setError(
+          "Email verified, but authentication token was not received. Please log in manually."
+        );
+        return;
+      }
+
       const userData = {
-        id: response.data?.user?.id || response.data?.user?._id,
-        name: response.data?.user?.name || name,
-        email: response.data?.user?.email || email,
-        role: response.data?.user?.role || "user",
+        id: verifiedUser?._id || verifiedUser?.id,
+        name: verifiedUser?.name || name,
+        email: verifiedUser?.email || email,
+        role: verifiedUser?.role || "user",
+        token: token,
+        isVerified: verifiedUser?.isVerified ?? true,
       };
 
+      console.log("Saving authenticated user:", userData);
+
+      /*
+        This stores the JWT token in:
+        localStorage -> vendora_user
+
+        Your api.js interceptor will then automatically
+        send the token with protected API requests.
+      */
       login(userData);
 
       setSuccess(
@@ -116,13 +144,6 @@ const VerifyOTP = () => {
     try {
       setResendLoading(true);
 
-      /*
-        Your backend must expose a resend OTP endpoint for this
-        button to work.
-
-        Change the endpoint below if your backend uses a
-        different route.
-      */
       const response = await axios.post(
         `${API_BASE_URL}/auth/resend-otp`,
         {
@@ -153,7 +174,6 @@ const VerifyOTP = () => {
 
   return (
     <div className="min-h-[calc(100vh-80px)] bg-[#0B0B0B] px-6 py-12 text-white">
-
       <div className="mx-auto grid max-w-6xl overflow-hidden rounded-3xl border border-[#292929] bg-[#151515] lg:grid-cols-2">
 
         {/* ================= LEFT ================= */}
@@ -228,10 +248,7 @@ const VerifyOTP = () => {
               )}
             </div>
 
-            <form
-              onSubmit={handleSubmit}
-              className="space-y-6"
-            >
+            <form onSubmit={handleSubmit} className="space-y-6">
 
               {/* OTP */}
               <div>
@@ -283,20 +300,15 @@ const VerifyOTP = () => {
 
               {/* Resend */}
               <div className="text-center">
-
                 <button
                   type="button"
                   onClick={handleResendOtp}
                   disabled={resendLoading}
                   className="text-sm font-medium text-gray-400 underline underline-offset-4 transition hover:text-[#C9A227] disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {resendLoading
-                    ? "Sending..."
-                    : "Resend OTP"}
+                  {resendLoading ? "Sending..." : "Resend OTP"}
                 </button>
-
               </div>
-
             </form>
 
             {/* Login */}
@@ -313,7 +325,6 @@ const VerifyOTP = () => {
 
           </div>
         </div>
-
       </div>
     </div>
   );

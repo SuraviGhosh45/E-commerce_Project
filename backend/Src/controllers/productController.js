@@ -16,21 +16,53 @@ const createS3Key = (file) => {
 
 const getProducts = async (req, res) => {
   try {
-    const products = await productModel.find({});
+    const search = String(req.query.search || "").trim();
+
+    let filter = {};
+
+    if (search) {
+      filter = {
+        $or: [
+          {
+            name: {
+              $regex: search,
+              $options: "i",
+            },
+          },
+          {
+            description: {
+              $regex: search,
+              $options: "i",
+            },
+          },
+          {
+            category: {
+              $regex: search,
+              $options: "i",
+            },
+          },
+        ],
+      };
+    }
+
+    const products =
+      await productModel.find(filter);
 
     return res.status(200).json({
       message: "Products Fetched Successfully",
       products,
     });
   } catch (error) {
-    console.error("GET PRODUCTS ERROR:", error);
+    console.error(
+      "GET PRODUCTS ERROR:",
+      error
+    );
 
     return res.status(500).json({
       message: "Server Error",
     });
   }
 };
-
 const getProductById = async (req, res) => {
   try {
     const product = await productModel.findById(req.params.id);

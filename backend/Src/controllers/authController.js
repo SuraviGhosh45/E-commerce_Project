@@ -1,133 +1,221 @@
-import userModel from "../model/user.model.js"
-import bcrypt from 'bcrypt'
-import sendEmail from "../utils/sendEmail.js"
-import getToken from "../utils/getToken.js"
+import userModel from "../model/user.model.js";
+import bcrypt from "bcrypt";
+import getToken from "../utils/getToken.js";
 
+import {
+  sendVerificationEmail,
+  sendLoginNotificationEmail,
+} from "../utils/emailService.js";
 
+// ======================================================
+// REGISTER
+// ======================================================
 
 const register = async (req, res) => {
-    try {
-        const { name, email, password } = req.body
+  try {
+    const { name, email, password } = req.body || {};
 
-        const UserExist = await userModel.findOne({ email })
+    const normalizedName = String(name || "").trim();
 
-        if (UserExist) {
-            return res.status(400).json({
-                message: "Email Already Exist"
-            })
-        }
+    const normalizedEmail = String(email || "")
+      .trim()
+      .toLowerCase();
 
-
-        const hashedPassword = await bcrypt.hash(password, 10)
-
-        const otp = Math.floor(100000 + Math.random() * 900000).toString()
-
-        const otpExpires = new Date(
-            Date.now() + 10 * 60 * 1000
-        )
-        const newUser = await userModel.create({
-            name,
-            email,
-            password: hashedPassword,
-            otp,
-            otpExpires,
-            isVerified: false
-        })
-        const message = `Hello ${name},
-
-Thank you for signing up with Vendora!
-
-Your verification code is:
-
-${otp}
-
-This code is valid for 10 minutes. For your security, please do not share this code with anyone.
-
-If you did not request this code, please ignore this email.
-
-Best regards,
-The Vendora Team`;
-
-        await sendEmail(email, "Vendora Email Verification OTP", message)
-
-
-        return res.status(201).json({
-            _id: newUser._id,
-            name: newUser.name,
-            email: newUser.email,
-            role: newUser.role,
-            isVerified: newUser.isVerified
-        });
-
-
-
-
-    } catch (error) {
-        res.status(500).json({
-            message: error.message
-        })
+    if (!normalizedName) {
+      return res.status(400).json({
+        message: "Name is required",
+      });
     }
 
-}
+    if (!normalizedEmail) {
+      return res.status(400).json({
+        message: "Email is required",
+      });
+    }
 
+    if (!password) {
+      return res.status(400).json({
+        message: "Password is required",
+      });
+    }
+
+    const userExist = await userModel.findOne({
+      email: normalizedEmail,
+    });
+
+    if (userExist) {
+      return res.status(400).json({
+        message: "Email Already Exist",
+      });
+    }
+
+    const hashedPassword =
+      await bcrypt.hash(password, 10);
+
+    const otp = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
+
+    const otpExpires = new Date(
+      Date.now() + 10 * 60 * 1000
+    );
+
+    const newUser = await userModel.create({
+      name: normalizedName,
+      email: normalizedEmail,
+      password: hashedPassword,
+      otp,
+      otpExpires,
+      isVerified: false,
+    });
+
+    try {
+      await sendVerificationEmail(
+        normalizedEmail,
+        normalizedName,
+        otp
+      );
+    } catch (emailError) {
+      console.error(
+        "REGISTRATION EMAIL ERROR:",
+        emailError
+      );
+
+      /*
+       * The account has already been created, so we
+       * return a clear response instead of pretending
+       * the database operation failed.
+       */
+      return res.status(500).json({
+        message:
+          "Account created, but verification email could not be sent. Please try again.",
+      });
+    }
+
+    return res.status(201).json({
+      _id: newUser._id,
+      name: newUser.name,
+      email: newUser.email,
+      role: newUser.role,
+      isVerified: newUser.isVerified,
+    });
+  } catch (error) {
+    console.error("REGISTER ERROR:", error);
+
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+// ======================================================
+// LOGIN
+// ======================================================
 
 const login = async (req, res) => {
-    try {
-        const { email, password } = req.body
-        const user = await userModel.findOne({ email })
+  try {
+    const { email, password } = req.body || {};
 
-        if (!user) {
-            return res.status(400).json({
-                message: "Kindly Register first."
-            })
-        }
-        if (!user.isVerified) {
-            return res.status(403).json({
-                message: "Please verify your email before logging in"
-            });
-        }
-        const token = getToken(user);
+    const normalizedEmail = String(email || "")
+      .trim()
+      .toLowerCase();
 
-        if (user && (await bcrypt.compare(password, user.password))) {
-            res.status(200).json({
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                token
-            })
-        }
-        else {
-            return res.status(400).json({
-                message: "Invalid Email or Password"
-            })
-        }
-    } catch (error) {
-        res.status(500).json({
-            message: error.message
-        })
+    const user = await userModel.findOne({
+      email: normalizedEmail,
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Kindly Register first.",
+      });
     }
-}
+
+    if (!user.isVerified) {
+      return res.status(403).json({
+        message:
+          "Please verify your email before logging in",
+      });
+    }
+
+    const passwordMatched =
+      await bcrypt.compare(
+        password,
+        user.password
+      );
+
+    if (!passwordMatched) {
+      return res.status(400).json({
+        message: "Invalid Email or Password",
+      });
+    }
+
+    // Generate token only after successful password check.
+    const token = getToken(user);
+
+    /*
+     * Login should succeed even if the notification
+     * email temporarily fails.
+     */
+    try {
+      await sendLoginNotificationEmail(
+        user.email,
+        user.name
+      );
+    } catch (emailError) {
+      console.error(
+        "LOGIN NOTIFICATION EMAIL ERROR:",
+        emailError
+      );
+    }
+
+    return res.status(200).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      token,
+    });
+  } catch (error) {
+    console.error("LOGIN ERROR:", error);
+
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+// ======================================================
+// GET USERS
+// ======================================================
 
 const getUsers = async (req, res) => {
-    try {
-        const users = await userModel.find({}).select('-password')
-        if (users) {
-            return res.status(200).json({
-                message: "All users fetched successfully",
-                users: users
-            })
-        }
-        else {
-            return res.status(404).json({
-                message: "Users not found"
-            })
-        }
-    } catch (error) {
-        return res.status(500).json({
-            message: error.message
-        })
-    }
-}
+  try {
+    const users = await userModel
+      .find({})
+      .select("-password");
 
-export default { register, login, getUsers }
+    if (!users.length) {
+      return res.status(404).json({
+        message: "Users not found",
+        users: [],
+      });
+    }
+
+    return res.status(200).json({
+      message: "All users fetched successfully",
+      users,
+    });
+  } catch (error) {
+    console.error("GET USERS ERROR:", error);
+
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+export default {
+  register,
+  login,
+  getUsers,
+};

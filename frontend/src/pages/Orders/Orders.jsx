@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { Link, Navigate } from "react-router-dom";
+import {
+  Link,
+  Navigate,
+} from "react-router-dom";
 import {
   FiArrowRight,
   FiCalendar,
@@ -11,30 +14,30 @@ import {
 import api from "../../services/api";
 
 const Orders = () => {
-  const {
-    isAuthenticated,
-    isAdmin,
-  } = useAuth();
+  const { isAuthenticated, isAdmin, user } = useAuth();
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // --------------------------------------------------
-  // ADMIN SHOULD NEVER USE CUSTOMER MY ORDERS PAGE
-  // --------------------------------------------------
-
-  if (isAuthenticated && isAdmin) {
-    return <Navigate to="/admin/orders" replace />;
-  }
-
-  // --------------------------------------------------
-  // FETCH CUSTOMER ORDERS
-  // --------------------------------------------------
-
+  /*
+   * -----------------------------------------------
+   * FETCH CUSTOMER ORDERS
+   * -----------------------------------------------
+   *
+   * All hooks are declared before any conditional
+   * return to keep React hook order consistent.
+   */
   useEffect(() => {
     const fetchOrders = async () => {
-      if (!isAuthenticated || isAdmin) {
+      // Admins do not use this page.
+      if (isAdmin) {
+        setLoading(false);
+        return;
+      }
+
+      // Wait until authentication is available.
+      if (!isAuthenticated) {
         setLoading(false);
         return;
       }
@@ -43,14 +46,23 @@ const Orders = () => {
         setLoading(true);
         setError("");
 
+        console.log("Fetching customer orders...");
+        console.log("Authenticated user:", user);
+
         const response = await api.get("/orders/myorders");
 
-        const backendOrders =
-          response.data?.orders || [];
+        console.log("My orders response:", response.data);
 
-        const formattedOrders =
-          backendOrders.map((order) => ({
+        const backendOrders = Array.isArray(
+          response.data?.orders
+        )
+          ? response.data.orders
+          : [];
+
+        const formattedOrders = backendOrders.map(
+          (order) => ({
             ...order,
+
             id: order._id,
 
             date: order.createdAt
@@ -72,8 +84,9 @@ const Orders = () => {
                 )
               : 0,
 
-            total:
-              Number(order.totalAmount || 0),
+            total: Number(
+              order.totalAmount || 0
+            ),
 
             status:
               order.status || "Pending",
@@ -81,7 +94,8 @@ const Orders = () => {
             statusType: String(
               order.status || "Pending"
             ).toLowerCase(),
-          }));
+          })
+        );
 
         setOrders(formattedOrders);
       } catch (error) {
@@ -90,9 +104,25 @@ const Orders = () => {
           error
         );
 
+        console.error(
+          "Response:",
+          error.response?.data
+        );
+
+        /*
+         * A 404 from the backend can mean there
+         * are no orders for the current user.
+         */
         if (error.response?.status === 404) {
           setOrders([]);
           setError("");
+        } else if (
+          error.response?.status === 401
+        ) {
+          setOrders([]);
+          setError(
+            "Your session has expired. Please log in again."
+          );
         } else {
           setError(
             error.response?.data?.message ||
@@ -105,12 +135,17 @@ const Orders = () => {
     };
 
     fetchOrders();
-  }, [isAuthenticated, isAdmin]);
+  }, [
+    isAuthenticated,
+    isAdmin,
+    user,
+  ]);
 
-  // --------------------------------------------------
-  // ACTIVE ORDERS
-  // --------------------------------------------------
-
+  /*
+   * -----------------------------------------------
+   * ACTIVE ORDERS
+   * -----------------------------------------------
+   */
   const activeOrders = useMemo(() => {
     return orders.filter(
       (order) =>
@@ -122,10 +157,11 @@ const Orders = () => {
 
   const latestOrder = orders[0];
 
-  // --------------------------------------------------
-  // STATUS STYLES
-  // --------------------------------------------------
-
+  /*
+   * -----------------------------------------------
+   * STATUS STYLES
+   * -----------------------------------------------
+   */
   const getStatusClasses = (status) => {
     switch (status) {
       case "Delivered":
@@ -151,10 +187,25 @@ const Orders = () => {
     }
   };
 
-  // --------------------------------------------------
-  // NOT AUTHENTICATED
-  // --------------------------------------------------
+  /*
+   * -----------------------------------------------
+   * ADMIN
+   * -----------------------------------------------
+   */
+  if (isAuthenticated && isAdmin) {
+    return (
+      <Navigate
+        to="/admin/orders"
+        replace
+      />
+    );
+  }
 
+  /*
+   * -----------------------------------------------
+   * NOT AUTHENTICATED
+   * -----------------------------------------------
+   */
   if (!isAuthenticated) {
     return (
       <main className="min-h-screen bg-[#0B0B0B] px-5 py-20 text-white">
@@ -178,10 +229,11 @@ const Orders = () => {
     );
   }
 
-  // --------------------------------------------------
-  // LOADING
-  // --------------------------------------------------
-
+  /*
+   * -----------------------------------------------
+   * LOADING
+   * -----------------------------------------------
+   */
   if (loading) {
     return (
       <main className="min-h-screen bg-[#0B0B0B] px-5 py-20 text-[#F5F5F5]">
@@ -196,12 +248,19 @@ const Orders = () => {
     );
   }
 
+  /*
+   * -----------------------------------------------
+   * PAGE
+   * -----------------------------------------------
+   */
   return (
     <main className="min-h-screen bg-[#0B0B0B] text-[#F5F5F5]">
+
       {/* HEADER */}
       <section className="border-b border-[#292929] bg-black">
         <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8 sm:py-14 lg:px-10 xl:px-12">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+
             <div>
               <p className="text-[11px] font-medium uppercase tracking-[0.25em] text-[#C9A227] sm:text-sm">
                 Account
@@ -224,12 +283,15 @@ const Orders = () => {
               Continue Shopping
               <FiArrowRight size={16} />
             </Link>
+
           </div>
         </div>
       </section>
 
       {/* CONTENT */}
       <section className="mx-auto max-w-7xl px-5 py-8 sm:px-8 sm:py-10 lg:px-10 lg:py-14 xl:px-12">
+
+        {/* ERROR */}
         {error && (
           <div className="mb-6 rounded-xl border border-red-900/40 bg-red-950/20 px-4 py-3 text-sm text-red-400">
             {error}
@@ -238,8 +300,11 @@ const Orders = () => {
 
         {/* SUMMARY */}
         <div className="grid gap-4 sm:grid-cols-3">
+
+          {/* TOTAL ORDERS */}
           <div className="rounded-2xl border border-[#292929] bg-[#151515] p-5">
             <div className="flex items-center gap-3">
+
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0B0B0B] text-[#C9A227]">
                 <FiShoppingBag size={18} />
               </div>
@@ -253,11 +318,14 @@ const Orders = () => {
                   {orders.length}
                 </p>
               </div>
+
             </div>
           </div>
 
+          {/* ACTIVE ORDERS */}
           <div className="rounded-2xl border border-[#292929] bg-[#151515] p-5">
             <div className="flex items-center gap-3">
+
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0B0B0B] text-[#C9A227]">
                 <FiPackage size={18} />
               </div>
@@ -271,11 +339,14 @@ const Orders = () => {
                   {activeOrders.length}
                 </p>
               </div>
+
             </div>
           </div>
 
+          {/* LATEST ORDER */}
           <div className="rounded-2xl border border-[#292929] bg-[#151515] p-5">
             <div className="flex items-center gap-3">
+
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0B0B0B] text-[#C9A227]">
                 <FiCalendar size={18} />
               </div>
@@ -290,13 +361,17 @@ const Orders = () => {
                     "No orders yet"}
                 </p>
               </div>
+
             </div>
           </div>
+
         </div>
 
         {/* ORDER HISTORY */}
         <div className="mt-8">
+
           <div className="flex items-center justify-between border-b border-[#292929] pb-5">
+
             <div>
               <h2 className="text-lg font-semibold">
                 Order history
@@ -313,10 +388,13 @@ const Orders = () => {
                 ? "order"
                 : "orders"}
             </span>
+
           </div>
 
+          {/* NO ORDERS */}
           {orders.length === 0 ? (
             <div className="mt-5 rounded-2xl border border-[#292929] bg-[#111111] p-10 text-center">
+
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#151515] text-[#C9A227]">
                 <FiShoppingBag size={22} />
               </div>
@@ -337,16 +415,23 @@ const Orders = () => {
                 Start Shopping
                 <FiArrowRight size={16} />
               </Link>
+
             </div>
           ) : (
+
+            /* ORDERS */
             <div className="mt-5 space-y-4">
+
               {orders.map((order) => (
+
                 <article
                   key={order.id}
                   className="rounded-2xl border border-[#292929] bg-[#111111] p-5 transition hover:border-[#C9A227]/50 sm:p-6"
                 >
+
                   {/* DESKTOP */}
                   <div className="hidden items-center gap-6 md:flex">
+
                     <div className="min-w-[190px]">
                       <p className="text-[10px] uppercase tracking-[0.15em] text-gray-600">
                         Order ID
@@ -411,11 +496,14 @@ const Orders = () => {
                     >
                       <FiChevronRight size={18} />
                     </Link>
+
                   </div>
 
                   {/* MOBILE */}
                   <div className="md:hidden">
+
                     <div className="flex items-start justify-between gap-4">
+
                       <div>
                         <p className="text-[10px] uppercase tracking-[0.15em] text-gray-600">
                           Order ID
@@ -433,9 +521,11 @@ const Orders = () => {
                       >
                         {order.status}
                       </span>
+
                     </div>
 
                     <div className="mt-5 grid grid-cols-2 gap-4 border-t border-[#292929] pt-5">
+
                       <div>
                         <p className="text-[10px] uppercase tracking-[0.15em] text-gray-600">
                           Date
@@ -468,6 +558,7 @@ const Orders = () => {
                           ₹{order.total.toFixed(2)}
                         </p>
                       </div>
+
                     </div>
 
                     <Link
@@ -477,11 +568,16 @@ const Orders = () => {
                       View Order
                       <FiArrowRight size={16} />
                     </Link>
+
                   </div>
+
                 </article>
+
               ))}
+
             </div>
           )}
+
         </div>
       </section>
     </main>

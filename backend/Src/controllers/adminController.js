@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import userModel from "../model/user.model.js";
 import productModel from "../model/product.model.js";
 import orderModel from "../model/order.model.js";
-
+import mongoose from "mongoose";
 // ======================================================
 // ADMIN ANALYTICS
 // ======================================================
@@ -282,33 +282,44 @@ export const updateAdminUser = async (req, res) => {
 
 export const deleteAdminUser = async (req, res) => {
   try {
-    const user = await userModel.findById(
-      req.params.id
-    );
+    const { id } = req.params;
+
+    // Validate MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        message: "Invalid user ID",
+      });
+    }
+
+    // Do not allow an admin to delete their own account
+    if (String(req.user._id) === String(id)) {
+      return res.status(400).json({
+        message: "You cannot delete your own account",
+      });
+    }
+
+    // Check user exists
+    const user = await userModel.findById(id);
 
     if (!user) {
       return res.status(404).json({
-        message: "User Not Found",
+        message: "User not found",
       });
     }
 
-    // Prevent admin from deleting own account.
-    if (
-      user._id.toString() ===
-      req.user._id.toString()
-    ) {
-      return res.status(400).json({
-        message:
-          "You cannot delete your own admin account",
-      });
-    }
-
-    await userModel.deleteOne({
-      _id: req.params.id,
+    // Delete all orders belonging to this user
+    const deletedOrders = await orderModel.deleteMany({
+      user: id,
     });
 
+    // Delete the user
+    await userModel.findByIdAndDelete(id);
+
     return res.status(200).json({
-      message: "User Deleted Successfully",
+      message:
+        "User and associated orders deleted successfully",
+      deletedOrders: deletedOrders.deletedCount,
+      userId: id,
     });
   } catch (error) {
     console.error(

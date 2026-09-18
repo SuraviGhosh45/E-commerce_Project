@@ -20,16 +20,13 @@ const OrderSuccess = () => {
   const orderData = location.state || {};
   const order = orderData.order;
 
-  const orderId =
-    order?._id || orderData.orderId;
+  const orderId = order?._id || orderData.orderId;
 
-  const paymentMethod =
-    orderData.paymentMethod || "razorpay";
+  const paymentMethod = orderData.paymentMethod || "razorpay";
 
   const items = orderData.items || [];
 
-  const customer =
-    orderData.customer || {};
+  const customer = orderData.customer || {};
 
   const total = Number(
     order?.totalAmount ??
@@ -37,8 +34,7 @@ const OrderSuccess = () => {
       0
   );
 
-  const orderStatus =
-    order?.status || "Processing";
+  const orderStatus = order?.status || "Processing";
 
   const paymentId =
     order?.paymentId ||
@@ -60,22 +56,25 @@ const OrderSuccess = () => {
     return null;
   }
 
+  const handleViewOrders = () => {
+    navigate("/orders");
+  };
+
+  const handleViewOrderDetails = () => {
+    navigate(`/orders/${orderId}`);
+  };
+
   const orderDate = order?.createdAt
-    ? new Date(
-        order.createdAt
-      ).toLocaleDateString("en-IN", {
+    ? new Date(order.createdAt).toLocaleDateString("en-IN", {
         day: "numeric",
         month: "long",
         year: "numeric",
       })
-    : new Date().toLocaleDateString(
-        "en-IN",
-        {
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-        }
-      );
+    : new Date().toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      });
 
   const totalItems = items.reduce(
     (count, item) =>
@@ -88,10 +87,7 @@ const OrderSuccess = () => {
       <section className="border-b border-[#292929] bg-black">
         <div className="mx-auto max-w-4xl px-5 py-16 text-center sm:px-8 sm:py-20 lg:py-24">
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#C9A227] text-black shadow-[0_0_40px_rgba(201,162,39,0.15)] sm:h-24 sm:w-24">
-            <FiCheck
-              size={38}
-              strokeWidth={2.5}
-            />
+            <FiCheck size={38} strokeWidth={2.5} />
           </div>
 
           <p className="mt-8 text-[11px] font-medium uppercase tracking-[0.3em] text-[#C9A227] sm:text-sm">
@@ -324,21 +320,26 @@ const OrderSuccess = () => {
               </span>
             </div>
 
-            <Link
-              to={`/orders/${orderId}`}
+            {/* View Order Details */}
+            <button
+              type="button"
+              onClick={handleViewOrderDetails}
               className="mt-7 flex w-full items-center justify-center gap-2 rounded-xl bg-[#C9A227] px-5 py-4 text-sm font-medium text-black transition hover:bg-[#E2C45A]"
             >
               View Order Details
               <FiArrowRight size={17} />
-            </Link>
+            </button>
 
-            <Link
-              to="/orders"
+            {/* View My Orders */}
+            <button
+              type="button"
+              onClick={handleViewOrders}
               className="mt-3 flex w-full items-center justify-center rounded-xl border border-[#292929] px-5 py-4 text-sm font-medium text-gray-300 transition hover:border-[#C9A227] hover:text-[#C9A227]"
             >
               View My Orders
-            </Link>
+            </button>
 
+            {/* Continue Shopping */}
             <Link
               to="/shop"
               className="mt-5 flex w-full items-center justify-center text-sm text-gray-500 transition hover:text-[#C9A227]"
