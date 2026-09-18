@@ -43,6 +43,18 @@ const userSchema = new mongoose.Schema(
     otpExpires: {
       type: Date,
     },
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+    },
+
+    authProvider: {
+      type: String,
+      enum: ["local", "google"],
+      default: "local",
+    },
   },
   {
     timestamps: true,
