@@ -32,12 +32,6 @@ const Footer = () => {
                 alt="Vendora"
                 className="h-9 w-auto dark:hidden"
               />
-
-              <img
-                src="/vendora_logo_white.png"
-                alt="Vendora"
-                className="hidden h-9 w-auto dark:block"
-              />
             </Link>
 
             <p className="mt-6 max-w-xs text-sm leading-7 text-gray-500 dark:text-gray-400">

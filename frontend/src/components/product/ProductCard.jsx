@@ -1,18 +1,37 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   FiHeart,
   FiShoppingCart,
   FiStar,
   FiCheck,
+  FiMinus,
+  FiPlus,
 } from "react-icons/fi";
 
+import { useCart } from "../../context/CartContext";
+
 const ProductCard = ({ product, onAddToCart }) => {
+  const {
+    cartItems,
+    increaseQuantity,
+    decreaseQuantity,
+  } = useCart();
+
   const [isAdded, setIsAdded] = useState(false);
 
   const stock = Number(product?.stock || 0);
   const rating = Number(product?.rating || 0);
   const reviews = Number(product?.reviews || 0);
+
+  // Get the actual quantity of this product from the cart
+  const cartItem = cartItems.find(
+    (item) => item.id === product.id
+  );
+
+  const quantityInCart = Number(
+    cartItem?.quantity || 0
+  );
 
   const handleAddToCart = () => {
     if (stock <= 0) {
@@ -26,6 +45,18 @@ const ProductCard = ({ product, onAddToCart }) => {
     setTimeout(() => {
       setIsAdded(false);
     }, 2000);
+  };
+
+  const handleIncrease = () => {
+    if (quantityInCart >= stock) {
+      return;
+    }
+
+    increaseQuantity(product.id);
+  };
+
+  const handleDecrease = () => {
+    decreaseQuantity(product.id);
   };
 
   return (
@@ -76,7 +107,9 @@ const ProductCard = ({ product, onAddToCart }) => {
             />
 
             <span className="text-xs font-medium">
-              {rating > 0 ? rating.toFixed(1) : "New"}
+              {rating > 0
+                ? rating.toFixed(1)
+                : "New"}
             </span>
           </div>
 
@@ -98,32 +131,60 @@ const ProductCard = ({ product, onAddToCart }) => {
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={handleAddToCart}
-            disabled={stock <= 0}
-            className={`flex h-10 min-w-10 shrink-0 items-center justify-center gap-1.5 rounded-full px-3 text-sm font-medium transition ${
-              isAdded
-                ? "bg-green-500 text-white"
-                : "bg-[#C9A227] text-black hover:bg-[#E2C45A]"
-            } disabled:cursor-not-allowed disabled:bg-gray-700 disabled:text-gray-500`}
-            aria-label={
-              isAdded
-                ? `${product.name} added to cart`
-                : `Add ${product.name} to cart`
-            }
-          >
-            {isAdded ? (
-              <>
-                <FiCheck size={16} />
-                <span className="hidden sm:inline">
-                  Added
-                </span>
-              </>
-            ) : (
-              <FiShoppingCart size={17} />
-            )}
-          </button>
+          {quantityInCart > 0 ? (
+            <div className="flex items-center overflow-hidden rounded-full border border-[#C9A227] bg-[#151515]">
+              <button
+                type="button"
+                onClick={handleDecrease}
+                className="flex h-10 w-9 items-center justify-center text-[#C9A227] transition hover:bg-[#C9A227] hover:text-black"
+                aria-label={`Decrease ${product.name} quantity`}
+              >
+                <FiMinus size={15} />
+              </button>
+
+              <span className="flex h-10 min-w-10 items-center justify-center border-x border-[#292929] text-sm font-semibold text-white">
+                {quantityInCart}
+              </span>
+
+              <button
+                type="button"
+                onClick={handleIncrease}
+                disabled={quantityInCart >= stock}
+                className="flex h-10 w-9 items-center justify-center text-[#C9A227] transition hover:bg-[#C9A227] hover:text-black disabled:cursor-not-allowed disabled:opacity-30"
+                aria-label={`Increase ${product.name} quantity`}
+              >
+                <FiPlus size={15} />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              disabled={stock <= 0}
+              className={`flex h-10 min-w-10 shrink-0 items-center justify-center gap-1.5 rounded-full px-3 text-sm font-medium transition ${
+                isAdded
+                  ? "bg-green-500 text-white"
+                  : "bg-[#C9A227] text-black hover:bg-[#E2C45A]"
+              } disabled:cursor-not-allowed disabled:bg-gray-700 disabled:text-gray-500`}
+              aria-label={
+                isAdded
+                  ? `${product.name} added to cart`
+                  : `Add ${product.name} to cart`
+              }
+            >
+              {isAdded ? (
+                <>
+                  <FiCheck size={16} />
+
+                  <span className="hidden sm:inline">
+                    Added
+                  </span>
+                </>
+              ) : (
+                <FiShoppingCart size={17} />
+              )}
+            </button>
+          )}
         </div>
       </div>
     </article>

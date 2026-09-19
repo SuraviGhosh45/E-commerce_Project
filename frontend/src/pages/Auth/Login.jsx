@@ -227,7 +227,7 @@ const Login = () => {
             <div className="relative z-10">
               <Link to="/">
                 <img
-                  src="/vendora_logo_white.png"
+                  src="/vendora_logo_black.png"
                   alt="Vendora"
                   className="h-8 w-auto sm:h-9"
                 />
@@ -287,7 +287,7 @@ const Login = () => {
               <div className="mb-8 flex items-center justify-between sm:mb-10 lg:hidden">
                 <Link to="/">
                   <img
-                    src="/vendora_logo_white.png"
+                    src="/vendora_logo_black.png"
                     alt="Vendora"
                     className="h-8 w-auto sm:h-9"
                   />

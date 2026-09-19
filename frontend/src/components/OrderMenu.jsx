@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { FiChevronDown, FiPackage } from "react-icons/fi";
 
 import { useAuth } from "../context/AuthContext";
@@ -7,10 +7,16 @@ import api from "../services/api";
 
 const OrderMenu = () => {
   const { isAuthenticated, isAdmin } = useAuth();
+  const location = useLocation();
 
   const [orders, setOrders] = useState([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Close My Orders dropdown whenever the route changes
+  useEffect(() => {
+    setOpen(false);
+  }, [location.pathname]);
 
   useEffect(() => {
     if (!isAuthenticated || isAdmin) {
@@ -86,6 +92,7 @@ const OrderMenu = () => {
         className="flex items-center gap-1.5 text-sm font-medium text-gray-300 transition hover:text-[#C9A227]"
       >
         My Orders
+
         <FiChevronDown
           size={15}
           className={`transition-transform ${
@@ -165,7 +172,8 @@ const OrderMenu = () => {
                         </p>
 
                         <p className="mt-1 text-sm font-semibold text-white">
-                          ₹{Number(
+                          ₹
+                          {Number(
                             order.totalAmount || 0
                           ).toFixed(2)}
                         </p>

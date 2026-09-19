@@ -59,7 +59,7 @@ const AdminSidebar = ({ isOpen, onClose }) => {
 
           <Link to="/" onClick={onClose}>
             <img
-              src="/vendora_logo_white.png"
+              src="/vendora_logo_black.png"
               alt="Vendora"
               className="h-9 w-auto"
             />

@@ -182,7 +182,7 @@ const VerifyOTP = () => {
           <div className="relative z-10">
             <Link to="/">
               <img
-                src="/vendora_logo_white.png"
+                src="/vendora_logo_black.png"
                 alt="Vendora"
                 className="h-10 w-auto"
               />
@@ -219,7 +219,7 @@ const VerifyOTP = () => {
             <div className="mb-10 lg:hidden">
               <Link to="/">
                 <img
-                  src="/vendora_logo_white.png"
+                  src="/vendora_logo_black.png"
                   alt="Vendora"
                   className="h-10 w-auto"
                 />
