@@ -3,6 +3,7 @@ import userModel from "../model/user.model.js";
 import productModel from "../model/product.model.js";
 import orderModel from "../model/order.model.js";
 import mongoose from "mongoose";
+
 // ======================================================
 // ADMIN ANALYTICS
 // ======================================================
@@ -307,18 +308,23 @@ export const deleteAdminUser = async (req, res) => {
       });
     }
 
-    // Delete all orders belonging to this user
-    const deletedOrders = await orderModel.deleteMany({
-      user: id,
-    });
+    // --------------------------------------------------
+    // IMPORTANT:
+    // Do NOT delete the user's historical orders.
+    //
+    // Orders are kept so that:
+    // 1. Delivered sales remain in total revenue.
+    // 2. Historical order records are preserved.
+    // 3. Business/order history is not lost when a user
+    //    account is deleted.
+    // --------------------------------------------------
 
-    // Delete the user
+    // Delete only the user account
     await userModel.findByIdAndDelete(id);
 
     return res.status(200).json({
       message:
-        "User and associated orders deleted successfully",
-      deletedOrders: deletedOrders.deletedCount,
+        "User deleted successfully. Historical orders have been preserved.",
       userId: id,
     });
   } catch (error) {
