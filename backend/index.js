@@ -22,14 +22,13 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:5173",
   "https://vendora-frontend-pznl.onrender.com",
+  "https://e-commerce-project-rn6nmmlji-suravighosh45s-projects.vercel.app",
 ];
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin) {
-        return callback(null, true);
-      }
+      if (!origin) return callback(null, true);
 
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
