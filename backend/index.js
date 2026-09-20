@@ -21,7 +21,6 @@ const app = express();
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://vendora-frontend-pznl.onrender.com",
   "https://e-commerce-project-two-gamma.vercel.app",
 ];
 
