@@ -72,14 +72,15 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0B0B] px-4 py-8 text-white sm:px-6 sm:py-12">
+    <div className="min-h-screen bg-[#0B0B0B] px-3 py-4 text-white sm:px-5 sm:py-6 md:px-6 md:py-8 lg:px-8 lg:py-12">
 
-      <div className="mx-auto grid max-w-6xl overflow-hidden rounded-3xl border border-[#292929] bg-[#151515] lg:grid-cols-2">
+      <div className="mx-auto grid w-full max-w-6xl overflow-hidden rounded-xl border border-[#292929] bg-[#151515] sm:rounded-2xl lg:grid-cols-2 lg:rounded-3xl">
 
-        {/* LEFT */}
-        <div className="relative hidden min-h-[700px] overflow-hidden bg-black p-8 text-white lg:flex lg:flex-col lg:justify-between lg:p-12">
+        {/* ================= LEFT ================= */}
+        <div className="relative hidden min-h-[700px] overflow-hidden bg-black p-8 text-white lg:flex lg:flex-col lg:justify-between xl:p-12">
 
           <div className="absolute -right-32 -top-32 h-80 w-80 rounded-full border border-[#C9A227]/10" />
+
           <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full border border-[#C9A227]/10" />
 
           <div className="relative z-10">
@@ -87,17 +88,18 @@ const Register = () => {
               <img
                 src="/vendora_logo_black.png"
                 alt="Vendora"
-                className="h-9 w-auto"
+                className="h-8 w-auto xl:h-9"
               />
             </Link>
           </div>
 
           <div className="relative z-10 max-w-md">
-            <p className="mb-5 text-sm uppercase tracking-[0.3em] text-[#C9A227]">
+
+            <p className="mb-4 text-xs uppercase tracking-[0.25em] text-[#C9A227] xl:mb-5 xl:text-sm xl:tracking-[0.3em]">
               Join Vendora
             </p>
 
-            <h1 className="text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
+            <h1 className="text-4xl font-semibold leading-tight tracking-tight xl:text-5xl">
               Shopping,
               <br />
               <span className="text-gray-500">
@@ -105,12 +107,12 @@ const Register = () => {
               </span>
             </h1>
 
-            <p className="mt-6 max-w-sm text-sm leading-7 text-gray-400">
+            <p className="mt-5 max-w-sm text-sm leading-7 text-gray-400 xl:mt-6">
               Create your account and discover a smarter, simpler way to shop
               your favorite products.
             </p>
 
-            <div className="mt-8 space-y-3 text-sm text-gray-300">
+            <div className="mt-7 space-y-3 text-sm text-gray-300 xl:mt-8">
               <p>✓ Personalized shopping experience</p>
               <p>✓ Easy order tracking</p>
               <p>✓ Secure checkout</p>
@@ -122,38 +124,48 @@ const Register = () => {
           </p>
         </div>
 
-        {/* RIGHT */}
-        <div className="flex min-h-[700px] items-center justify-center p-5 sm:p-8 md:p-12">
+        {/* ================= RIGHT ================= */}
+        <div className="flex min-h-[calc(100vh-2rem)] items-center justify-center px-4 py-8 sm:min-h-[700px] sm:px-8 sm:py-10 md:px-10 md:py-12 lg:min-h-[720px] lg:px-10 xl:px-16">
+
           <div className="w-full max-w-md">
 
             {/* Mobile logo */}
-            <div className="mb-8 lg:hidden">
-              <Link to="/">
+            <div className="mb-7 flex items-center justify-between lg:hidden sm:mb-9">
+              <Link to="/" className="shrink-0">
                 <img
                   src="/vendora_logo_black.png"
                   alt="Vendora"
-                  className="h-9 w-auto"
+                  className="h-7 w-auto sm:h-8"
                 />
+              </Link>
+
+              <Link
+                to="/login"
+                className="text-right text-xs font-medium text-gray-400 transition hover:text-[#C9A227] sm:text-sm"
+              >
+                Sign in
               </Link>
             </div>
 
-            <div className="mb-8">
-              <p className="mb-3 text-xs font-medium uppercase tracking-[0.25em] text-[#C9A227]">
+            {/* Heading */}
+            <div className="mb-7 sm:mb-8">
+
+              <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.22em] text-[#C9A227] sm:mb-3 sm:text-xs sm:tracking-[0.25em]">
                 Get started
               </p>
 
-              <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+              <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl md:text-4xl">
                 Create account.
               </h2>
 
-              <p className="mt-3 text-sm leading-6 text-gray-500">
+              <p className="mt-2 max-w-sm text-sm leading-6 text-gray-500 sm:mt-3">
                 Join Vendora and start your shopping journey.
               </p>
             </div>
 
             <form
               onSubmit={handleSubmit}
-              className="space-y-5"
+              className="space-y-4 sm:space-y-5"
             >
 
               {/* Name */}
@@ -173,7 +185,8 @@ const Register = () => {
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  className="w-full rounded-xl border border-[#292929] bg-[#0B0B0B] px-4 py-3.5 text-sm text-white outline-none placeholder:text-gray-600 transition focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/20"
+                  disabled={loading}
+                  className="w-full rounded-xl border border-[#292929] bg-[#0B0B0B] px-3.5 py-3.5 text-sm text-white outline-none placeholder:text-gray-600 transition focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/20 disabled:opacity-60 sm:px-4 sm:py-4"
                 />
               </div>
 
@@ -194,7 +207,8 @@ const Register = () => {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="w-full rounded-xl border border-[#292929] bg-[#0B0B0B] px-4 py-3.5 text-sm text-white outline-none placeholder:text-gray-600 transition focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/20"
+                  disabled={loading}
+                  className="w-full rounded-xl border border-[#292929] bg-[#0B0B0B] px-3.5 py-3.5 text-sm text-white outline-none placeholder:text-gray-600 transition focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/20 disabled:opacity-60 sm:px-4 sm:py-4"
                 />
               </div>
 
@@ -217,7 +231,8 @@ const Register = () => {
                     value={formData.password}
                     onChange={handleChange}
                     required
-                    className="w-full rounded-xl border border-[#292929] bg-[#0B0B0B] px-4 py-3.5 pr-12 text-sm text-white outline-none placeholder:text-gray-600 transition focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/20"
+                    disabled={loading}
+                    className="w-full rounded-xl border border-[#292929] bg-[#0B0B0B] px-3.5 py-3.5 pr-12 text-sm text-white outline-none placeholder:text-gray-600 transition focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/20 disabled:opacity-60 sm:px-4 sm:py-4"
                   />
 
                   <button
@@ -225,7 +240,13 @@ const Register = () => {
                     onClick={() =>
                       setShowPassword((current) => !current)
                     }
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 transition hover:text-[#C9A227]"
+                    disabled={loading}
+                    aria-label={
+                      showPassword
+                        ? "Hide password"
+                        : "Show password"
+                    }
+                    className="absolute right-2.5 top-1/2 flex -translate-y-1/2 items-center justify-center p-2 text-gray-500 transition hover:text-[#C9A227] sm:right-3"
                   >
                     {showPassword ? (
                       <FiEyeOff size={18} />
@@ -249,7 +270,7 @@ const Register = () => {
                   id="terms"
                   type="checkbox"
                   required
-                  className="mt-1 h-4 w-4 accent-[#C9A227]"
+                  className="mt-1 h-4 w-4 shrink-0 accent-[#C9A227]"
                 />
 
                 <label
@@ -271,7 +292,7 @@ const Register = () => {
 
               {/* Error */}
               {error && (
-                <div className="rounded-xl border border-red-900/50 bg-red-950/20 px-4 py-3 text-sm text-red-400">
+                <div className="break-words rounded-xl border border-red-900/50 bg-red-950/20 px-3.5 py-3 text-sm leading-5 text-red-400 sm:px-4">
                   {error}
                 </div>
               )}
@@ -280,7 +301,7 @@ const Register = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="group flex w-full items-center justify-center gap-2 rounded-xl bg-[#C9A227] px-5 py-3.5 text-sm font-medium text-black transition hover:bg-[#E2C45A] disabled:cursor-not-allowed disabled:opacity-60"
+                className="group flex w-full items-center justify-center gap-2 rounded-xl bg-[#C9A227] px-5 py-3.5 text-sm font-medium text-black transition hover:bg-[#E2C45A] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 sm:py-4"
               >
                 {loading ? "Creating account..." : "Create account"}
 
@@ -295,11 +316,11 @@ const Register = () => {
             </form>
 
             {/* Login */}
-            <p className="mt-8 text-center text-sm text-gray-500">
+            <p className="mt-7 text-center text-xs text-gray-500 sm:mt-8 sm:text-sm">
               Already have an account?{" "}
               <Link
                 to="/login"
-                className="font-medium text-[#C9A227] underline underline-offset-4"
+                className="font-medium text-[#C9A227] underline underline-offset-4 transition hover:text-[#E2C45A]"
               >
                 Sign in
               </Link>

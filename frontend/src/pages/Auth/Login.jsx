@@ -49,30 +49,6 @@ const Login = () => {
 
       console.log("LOGIN RESPONSE:", response.data);
 
-      /*
-       * Support both:
-       *
-       * {
-       *   _id,
-       *   name,
-       *   email,
-       *   role,
-       *   token
-       * }
-       *
-       * and:
-       *
-       * {
-       *   user: {
-       *      _id,
-       *      name,
-       *      email,
-       *      role
-       *   },
-       *   token
-       * }
-       */
-
       const responseUser =
         response.data?.user || response.data;
 
@@ -117,7 +93,6 @@ const Login = () => {
 
       login(userData);
 
-      // Verify what was actually stored.
       const storedUser =
         localStorage.getItem("vendora_user");
 
@@ -187,7 +162,9 @@ const Login = () => {
 
       console.log("GOOGLE USER SAVED:", {
         ...userData,
-        token: userData.token ? "TOKEN_PRESENT" : "NO_TOKEN",
+        token: userData.token
+          ? "TOKEN_PRESENT"
+          : "NO_TOKEN",
       });
 
       if (userData.role === "admin") {
@@ -215,11 +192,15 @@ const Login = () => {
   };
 
   return (
-    <main className="min-h-screen bg-[#0B0B0B] px-4 py-6 text-white sm:px-6 sm:py-8 md:py-10 lg:px-8 lg:py-12">
-      <div className="mx-auto w-full max-w-7xl overflow-hidden rounded-2xl border border-[#292929] bg-[#151515] shadow-2xl sm:rounded-3xl">
-        <div className="grid lg:grid-cols-2">
+    <main className="min-h-screen w-full overflow-x-hidden bg-[#0B0B0B] px-3 py-4 text-white sm:px-5 sm:py-6 md:px-6 md:py-8 lg:px-8 lg:py-12">
+
+      <div className="mx-auto w-full max-w-7xl overflow-hidden rounded-xl border border-[#292929] bg-[#151515] shadow-2xl sm:rounded-2xl md:rounded-3xl">
+
+        <div className="grid min-w-0 lg:grid-cols-2">
+
           {/* ================= LEFT BRANDING ================= */}
           <section className="relative hidden min-h-[720px] overflow-hidden bg-black p-8 sm:p-10 lg:flex lg:flex-col lg:justify-between xl:p-12 2xl:min-h-[800px]">
+
             <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full border border-[#C9A227]/15 sm:-right-32 sm:-top-32 sm:h-80 sm:w-80" />
 
             <div className="absolute -bottom-32 -left-24 h-72 w-72 rounded-full border border-[#C9A227]/10 sm:-bottom-40 sm:-left-40 sm:h-96 sm:w-96" />
@@ -235,6 +216,7 @@ const Login = () => {
             </div>
 
             <div className="relative z-10 max-w-xl">
+
               <p className="mb-4 text-xs font-medium uppercase tracking-[0.25em] text-[#C9A227] sm:mb-5 sm:text-sm sm:tracking-[0.3em]">
                 Welcome back
               </p>
@@ -254,6 +236,7 @@ const Login = () => {
               </p>
 
               <div className="mt-8 grid grid-cols-2 gap-4 sm:mt-10">
+
                 <div className="rounded-xl border border-[#292929] bg-[#0B0B0B] p-4">
                   <p className="text-xl font-semibold text-[#C9A227]">
                     10K+
@@ -273,55 +256,70 @@ const Login = () => {
                     Customers
                   </p>
                 </div>
+
               </div>
             </div>
 
             <p className="relative z-10 text-xs text-gray-500">
               © 2026 Vendora. All rights reserved.
             </p>
+
           </section>
 
           {/* ================= LOGIN FORM ================= */}
-          <section className="flex min-h-[700px] items-center bg-[#151515] px-5 py-10 sm:px-8 sm:py-12 md:px-12 lg:min-h-[720px] lg:px-10 xl:px-16 2xl:px-20">
-            <div className="mx-auto w-full max-w-md">
-              <div className="mb-8 flex items-center justify-between sm:mb-10 lg:hidden">
-                <Link to="/">
+          <section className="flex min-w-0 min-h-[calc(100vh-2rem)] items-center bg-[#151515] px-4 py-8 sm:min-h-[700px] sm:px-8 sm:py-10 md:px-10 md:py-12 lg:min-h-[720px] lg:px-10 xl:px-16 2xl:px-20">
+
+            <div className="mx-auto w-full min-w-0 max-w-md">
+
+              {/* Mobile Header */}
+              <div className="mb-7 flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-3 sm:mb-9 lg:hidden">
+
+                <Link
+                  to="/"
+                  className="shrink-0"
+                >
                   <img
                     src="/vendora_logo_black.png"
                     alt="Vendora"
-                    className="h-8 w-auto sm:h-9"
+                    className="h-7 w-auto sm:h-8"
                   />
                 </Link>
 
                 <Link
                   to="/register"
-                  className="text-xs font-medium text-gray-400 transition hover:text-[#C9A227] sm:text-sm"
+                  className="ml-auto max-w-full text-right text-xs font-medium text-gray-400 transition hover:text-[#C9A227] sm:text-sm"
                 >
                   Create account
                 </Link>
+
               </div>
 
-              <div className="mb-7 sm:mb-8">
-                <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.22em] text-[#C9A227] sm:text-xs sm:tracking-[0.25em]">
+              {/* Heading */}
+              <div className="mb-7 min-w-0 sm:mb-8">
+
+                <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.22em] text-[#C9A227] sm:mb-3 sm:text-xs sm:tracking-[0.25em]">
                   Account
                 </p>
 
-                <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+                <h2 className="break-words text-2xl font-semibold tracking-tight sm:text-3xl md:text-4xl">
                   Welcome back.
                 </h2>
 
-                <p className="mt-3 max-w-sm text-sm leading-6 text-gray-400 sm:text-base">
+                <p className="mt-2 max-w-sm text-sm leading-6 text-gray-400 sm:mt-3 sm:text-base">
                   Sign in to continue to your Vendora
                   account.
                 </p>
+
               </div>
 
               <form
                 onSubmit={handleSubmit}
-                className="space-y-4 sm:space-y-5"
+                className="w-full min-w-0 space-y-4 sm:space-y-5"
               >
+
                 {/* Email */}
-                <div>
+                <div className="min-w-0">
+
                   <label
                     htmlFor="email"
                     className="mb-2 block text-sm font-medium text-gray-200"
@@ -339,16 +337,19 @@ const Login = () => {
                     autoComplete="email"
                     required
                     disabled={loading}
-                    className="w-full rounded-xl border border-[#292929] bg-[#0B0B0B] px-4 py-3.5 text-sm text-white outline-none placeholder:text-gray-600 transition focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/20 disabled:opacity-60 sm:py-4"
+                    className="block w-full min-w-0 rounded-xl border border-[#292929] bg-[#0B0B0B] px-3.5 py-3.5 text-sm text-white outline-none placeholder:text-gray-600 transition focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/20 disabled:opacity-60 sm:px-4 sm:py-4"
                   />
+
                 </div>
 
                 {/* Password */}
-                <div>
-                  <div className="mb-2 flex items-center justify-between">
+                <div className="min-w-0">
+
+                  <div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+
                     <label
                       htmlFor="password"
-                      className="block text-sm font-medium text-gray-200"
+                      className="block shrink-0 text-sm font-medium text-gray-200"
                     >
                       Password
                     </label>
@@ -359,9 +360,11 @@ const Login = () => {
                     >
                       Forgot password?
                     </Link>
+
                   </div>
 
-                  <div className="relative">
+                  <div className="relative min-w-0">
+
                     <input
                       id="password"
                       name="password"
@@ -376,7 +379,7 @@ const Login = () => {
                       autoComplete="current-password"
                       required
                       disabled={loading}
-                      className="w-full rounded-xl border border-[#292929] bg-[#0B0B0B] px-4 py-3.5 pr-12 text-sm text-white outline-none placeholder:text-gray-600 transition focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/20 disabled:opacity-60 sm:py-4"
+                      className="block w-full min-w-0 rounded-xl border border-[#292929] bg-[#0B0B0B] px-3.5 py-3.5 pr-12 text-sm text-white outline-none placeholder:text-gray-600 transition focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/20 disabled:opacity-60 sm:px-4 sm:py-4"
                     />
 
                     <button
@@ -392,7 +395,7 @@ const Login = () => {
                           ? "Hide password"
                           : "Show password"
                       }
-                      className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center justify-center p-2 text-gray-500 transition hover:text-[#C9A227] sm:right-4"
+                      className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center justify-center p-2 text-gray-500 transition hover:text-[#C9A227] sm:right-3"
                     >
                       {showPassword ? (
                         <FiEyeOff size={18} />
@@ -400,15 +403,18 @@ const Login = () => {
                         <FiEye size={18} />
                       )}
                     </button>
+
                   </div>
+
                 </div>
 
                 {/* Remember me */}
-                <div className="flex items-center gap-3 pt-1">
+                <div className="flex w-full items-center gap-3 pt-1">
+
                   <input
                     id="remember"
                     type="checkbox"
-                    className="h-4 w-4 accent-[#C9A227]"
+                    className="h-4 w-4 shrink-0 accent-[#C9A227]"
                   />
 
                   <label
@@ -417,11 +423,12 @@ const Login = () => {
                   >
                     Remember me
                   </label>
+
                 </div>
 
                 {/* Error */}
                 {error && (
-                  <div className="rounded-xl border border-red-900/40 bg-red-950/30 px-4 py-3 text-sm text-red-400">
+                  <div className="w-full break-words rounded-xl border border-red-900/40 bg-red-950/30 px-3.5 py-3 text-sm leading-5 text-red-400 sm:px-4">
                     {error}
                   </div>
                 )}
@@ -430,7 +437,7 @@ const Login = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="group mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[#C9A227] px-5 py-3.5 text-sm font-medium text-black transition hover:bg-[#E2C45A] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 sm:py-4"
+                  className="group flex w-full items-center justify-center gap-2 rounded-xl bg-[#C9A227] px-5 py-3.5 text-sm font-medium text-black transition hover:bg-[#E2C45A] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 sm:py-4"
                 >
                   {loading
                     ? "Signing in..."
@@ -443,30 +450,39 @@ const Login = () => {
                     />
                   )}
                 </button>
+
               </form>
 
               {/* Divider */}
-              <div className="my-6 flex items-center gap-4 sm:my-7">
-                <div className="h-px flex-1 bg-[#292929]" />
+              <div className="my-6 flex w-full items-center gap-3 sm:my-7 sm:gap-4">
 
-                <span className="text-[11px] text-gray-600">
+                <div className="h-px min-w-0 flex-1 bg-[#292929]" />
+
+                <span className="shrink-0 text-[10px] text-gray-600 sm:text-[11px]">
                   OR
                 </span>
 
-                <div className="h-px flex-1 bg-[#292929]" />
+                <div className="h-px min-w-0 flex-1 bg-[#292929]" />
+
               </div>
 
               {/* Google */}
-              <div className="flex w-full justify-center overflow-hidden rounded-xl">
-                <GoogleLogin
-                  onSuccess={handleGoogleSuccess}
-                  onError={handleGoogleError}
-                  theme="filled_black"
-                  size="large"
-                  text="continue_with"
-                  shape="rectangular"
-                  width="400"
-                />
+              <div className="w-full min-w-0 overflow-hidden rounded-xl">
+
+                <div className="flex w-full min-w-0 justify-center overflow-hidden">
+
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={handleGoogleError}
+                    theme="filled_black"
+                    size="large"
+                    text="continue_with"
+                    shape="rectangular"
+                    width="400"
+                  />
+
+                </div>
+
               </div>
 
               {/* Register */}
@@ -479,10 +495,15 @@ const Login = () => {
                   Create one
                 </Link>
               </p>
+
             </div>
+
           </section>
+
         </div>
+
       </div>
+
     </main>
   );
 };
