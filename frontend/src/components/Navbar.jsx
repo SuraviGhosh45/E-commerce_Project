@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { CiSearch } from "react-icons/ci";
 import { TiShoppingCart } from "react-icons/ti";
-import { FiX, FiArrowRight } from "react-icons/fi";
+import {
+  FiX,
+  FiArrowRight,
+  FiMenu,
+} from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import OrderMenu from "./OrderMenu.jsx";
@@ -12,6 +16,7 @@ const Navbar = () => {
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isAdmin =
     isAuthenticated && user?.role === "admin";
@@ -19,34 +24,42 @@ const Navbar = () => {
   const isCustomer =
     isAuthenticated && user?.role !== "admin";
 
-const handleSearch = (e) => {
-  e.preventDefault();
+  const handleSearch = (e) => {
+    e.preventDefault();
 
-  const query = search.trim();
+    const query = search.trim();
 
-  if (!query) {
-    navigate(isAdmin ? "/admin/products" : "/shop");
+    if (!query) {
+      navigate(isAdmin ? "/admin/products" : "/shop");
+      setSearchOpen(false);
+      return;
+    }
+
+    if (isAdmin) {
+      navigate(
+        `/admin/products?search=${encodeURIComponent(query)}`
+      );
+    } else {
+      navigate(
+        `/shop?search=${encodeURIComponent(query)}`
+      );
+    }
+
     setSearchOpen(false);
-    return;
-  }
-
-  if (isAdmin) {
-    navigate(
-      `/admin/products?search=${encodeURIComponent(query)}`
-    );
-  } else {
-    navigate(
-      `/shop?search=${encodeURIComponent(query)}`
-    );
-  }
-
-  setSearchOpen(false);
-};
-
+  };
 
   const closeSearch = () => {
     setSearch("");
     setSearchOpen(false);
+  };
+
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
+  };
+
+  const handleMobileLogout = () => {
+    setMobileMenuOpen(false);
+    logout();
   };
 
   return (
@@ -55,7 +68,7 @@ const handleSearch = (e) => {
 
         {/* ================= LOGO ================= */}
         <div className="shrink-0">
-          <Link to="/">
+          <Link to="/" onClick={closeMobileMenu}>
             <img
               src="/vendora_logo_black.png"
               alt="Vendora"
@@ -64,7 +77,7 @@ const handleSearch = (e) => {
           </Link>
         </div>
 
-        {/* ================= NAVIGATION ================= */}
+        {/* ================= DESKTOP NAVIGATION ================= */}
         <div className="hidden md:block">
           <ul className="flex items-center gap-8 text-sm font-medium text-gray-200">
 
@@ -165,9 +178,7 @@ const handleSearch = (e) => {
             {!searchOpen ? (
               <button
                 type="button"
-                onClick={() =>
-                  setSearchOpen(true)
-                }
+                onClick={() => setSearchOpen(true)}
                 className="flex items-center gap-1 text-gray-200 transition-colors hover:text-[#C9A227]"
               >
                 <CiSearch size={22} />
@@ -201,18 +212,17 @@ const handleSearch = (e) => {
 
                   <button
                     type="submit"
-                    className="mr-1 flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-[#C9A227] hover:text-black"
+                    className="mr-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-[#C9A227] hover:text-black"
                     aria-label="Search"
                   >
                     <FiArrowRight size={16} />
                   </button>
-
                 </div>
 
                 <button
                   type="button"
                   onClick={closeSearch}
-                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#292929] text-gray-500 transition hover:border-[#C9A227] hover:text-[#C9A227]"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#292929] text-gray-500 transition hover:border-[#C9A227] hover:text-[#C9A227]"
                   aria-label="Close search"
                 >
                   <FiX size={16} />
@@ -267,14 +277,168 @@ const handleSearch = (e) => {
               <button
                 type="button"
                 onClick={logout}
-                className="rounded-md border border-gray-600 px-3 py-2 text-sm text-white transition-all hover:border-[#C9A227] hover:bg-[#C9A227] hover:text-black sm:px-4"
+                className="hidden rounded-md border border-gray-600 px-3 py-2 text-sm text-white transition-all hover:border-[#C9A227] hover:bg-[#C9A227] hover:text-black sm:block sm:px-4"
               >
                 Logout
               </button>
             </>
           )}
+
+          {/* ================= MOBILE MENU BUTTON ================= */}
+          <button
+            type="button"
+            onClick={() =>
+              setMobileMenuOpen((prev) => !prev)
+            }
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#292929] text-gray-200 transition hover:border-[#C9A227] hover:text-[#C9A227] md:hidden"
+            aria-label="Toggle navigation menu"
+            aria-expanded={mobileMenuOpen}
+          >
+            {mobileMenuOpen ? (
+              <FiX size={21} />
+            ) : (
+              <FiMenu size={21} />
+            )}
+          </button>
         </div>
       </div>
+
+      {/* ================= MOBILE MENU ================= */}
+      {mobileMenuOpen && (
+        <div className="mx-auto mt-4 max-w-7xl border-t border-[#292929] pt-4 md:hidden">
+
+          <div className="flex flex-col gap-1">
+
+            {/* ================= CUSTOMER MOBILE NAVIGATION ================= */}
+            {!isAdmin ? (
+              <>
+                <Link
+                  to="/"
+                  onClick={closeMobileMenu}
+                  className="rounded-lg px-4 py-3 text-sm font-medium text-gray-200 transition hover:bg-[#151515] hover:text-[#C9A227]"
+                >
+                  Home
+                </Link>
+
+                <Link
+                  to="/shop"
+                  onClick={closeMobileMenu}
+                  className="rounded-lg px-4 py-3 text-sm font-medium text-gray-200 transition hover:bg-[#151515] hover:text-[#C9A227]"
+                >
+                  Shop
+                </Link>
+
+                <Link
+                  to="/categories"
+                  onClick={closeMobileMenu}
+                  className="rounded-lg px-4 py-3 text-sm font-medium text-gray-200 transition hover:bg-[#151515] hover:text-[#C9A227]"
+                >
+                  Categories
+                </Link>
+
+                {/* MY ORDERS */}
+                {isCustomer && (
+                  <div
+                    onClick={closeMobileMenu}
+                    className="rounded-lg px-4 py-3 text-sm font-medium text-gray-200 transition hover:bg-[#151515] hover:text-[#C9A227]"
+                  >
+                    <OrderMenu />
+                  </div>
+                )}
+              </>
+            ) : (
+              /* ================= ADMIN MOBILE NAVIGATION ================= */
+              <>
+                <Link
+                  to="/admin/dashboard"
+                  onClick={closeMobileMenu}
+                  className="rounded-lg px-4 py-3 text-sm font-medium text-gray-200 transition hover:bg-[#151515] hover:text-[#C9A227]"
+                >
+                  Dashboard
+                </Link>
+
+                <Link
+                  to="/admin/products"
+                  onClick={closeMobileMenu}
+                  className="rounded-lg px-4 py-3 text-sm font-medium text-gray-200 transition hover:bg-[#151515] hover:text-[#C9A227]"
+                >
+                  Products
+                </Link>
+
+                <Link
+                  to="/admin/orders"
+                  onClick={closeMobileMenu}
+                  className="rounded-lg px-4 py-3 text-sm font-medium text-gray-200 transition hover:bg-[#151515] hover:text-[#C9A227]"
+                >
+                  Orders
+                </Link>
+
+                <Link
+                  to="/admin/users"
+                  onClick={closeMobileMenu}
+                  className="rounded-lg px-4 py-3 text-sm font-medium text-gray-200 transition hover:bg-[#151515] hover:text-[#C9A227]"
+                >
+                  Users
+                </Link>
+
+                <Link
+                  to="/admin/analytics"
+                  onClick={closeMobileMenu}
+                  className="rounded-lg px-4 py-3 text-sm font-medium text-gray-200 transition hover:bg-[#151515] hover:text-[#C9A227]"
+                >
+                  Analytics
+                </Link>
+              </>
+            )}
+
+            {/* ================= MOBILE PROFILE ================= */}
+            {isAuthenticated && (
+              <>
+                <div className="my-2 border-t border-[#292929]" />
+
+                <Link
+                  to="/profile"
+                  onClick={closeMobileMenu}
+                  className="rounded-lg px-4 py-3 text-sm font-medium text-gray-200 transition hover:bg-[#151515] hover:text-[#C9A227]"
+                >
+                  {user?.name || "Profile"}
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={handleMobileLogout}
+                  className="w-full rounded-lg px-4 py-3 text-left text-sm font-medium text-gray-200 transition hover:bg-[#151515] hover:text-[#C9A227]"
+                >
+                  Logout
+                </button>
+              </>
+            )}
+
+            {/* ================= MOBILE LOGIN / REGISTER ================= */}
+            {!isAuthenticated && (
+              <>
+                <div className="my-2 border-t border-[#292929]" />
+
+                <Link
+                  to="/login"
+                  onClick={closeMobileMenu}
+                  className="rounded-lg px-4 py-3 text-sm font-medium text-gray-200 transition hover:bg-[#151515] hover:text-[#C9A227]"
+                >
+                  Login
+                </Link>
+
+                <Link
+                  to="/register"
+                  onClick={closeMobileMenu}
+                  className="rounded-lg bg-[#C9A227] px-4 py-3 text-sm font-medium text-black transition hover:bg-[#E2C45A]"
+                >
+                  Register
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </nav>
   );
 };

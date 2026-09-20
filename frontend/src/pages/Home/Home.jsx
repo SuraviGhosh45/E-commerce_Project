@@ -1,4 +1,4 @@
-
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   FiArrowRight,
@@ -41,7 +41,7 @@ const Home = () => {
       id: 1,
       name: "Premium Headphones",
       category: "Electronics",
-      price: "$129",
+      price: "₹129",
       image:
         "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=700&q=80",
     },
@@ -49,7 +49,7 @@ const Home = () => {
       id: 2,
       name: "Minimal Watch",
       category: "Accessories",
-      price: "$89",
+      price: "₹89",
       image:
         "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=700&q=80",
     },
@@ -57,7 +57,7 @@ const Home = () => {
       id: 3,
       name: "Modern Sneakers",
       category: "Fashion",
-      price: "$110",
+      price: "₹110",
       image:
         "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=700&q=80",
     },
@@ -65,25 +65,69 @@ const Home = () => {
       id: 4,
       name: "Designer Chair",
       category: "Home & Living",
-      price: "$249",
+      price: "₹249",
       image:
         "https://images.unsplash.com/photo-1503602642458-232111445657?auto=format&fit=crop&w=700&q=80",
     },
   ];
 
+  const useScrollAnimation = () => {
+    const ref = useRef(null);
+    const [isVisible, setIsVisible] = useState(false);
+
+    useEffect(() => {
+      const element = ref.current;
+
+      if (!element) return;
+
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          setIsVisible(entry.isIntersecting);
+        },
+        {
+          threshold: 0.15,
+          rootMargin: "0px 0px -40px 0px",
+        }
+      );
+
+      observer.observe(element);
+
+      return () => {
+        observer.disconnect();
+      };
+    }, []);
+
+    return [ref, isVisible];
+  };
+
+  const [heroContentRef, heroContentVisible] = useScrollAnimation();
+  const [heroVisualRef, heroVisualVisible] = useScrollAnimation();
+  const [categoriesRef, categoriesVisible] = useScrollAnimation();
+  const [featuredRef, featuredVisible] = useScrollAnimation();
+  const [promoRef, promoVisible] = useScrollAnimation();
+  const [whyRef, whyVisible] = useScrollAnimation();
+
   return (
     <main className="min-h-screen bg-[#0B0B0B] text-[#F5F5F5]">
 
-      {/* HERO */}
+      {/* ================= HERO ================= */}
       <section className="relative overflow-hidden bg-black">
+
         <div className="absolute -right-32 -top-32 h-64 w-64 rounded-full border border-[#C9A227]/15 sm:-right-40 sm:-top-40 sm:h-[420px] sm:w-[420px]" />
 
         <div className="absolute -bottom-40 -left-32 h-64 w-64 rounded-full border border-[#C9A227]/10 sm:-bottom-52 sm:-left-40 sm:h-[420px] sm:w-[420px]" />
 
         <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-5 py-16 sm:px-8 sm:py-20 md:py-24 lg:grid-cols-2 lg:gap-16 lg:px-10 lg:py-28 xl:px-12">
 
-          {/* Hero content */}
-          <div className="max-w-2xl">
+          {/* ================= HERO CONTENT ================= */}
+          <div
+            ref={heroContentRef}
+            className={`max-w-2xl transform transition-all duration-1000 ease-out ${
+              heroContentVisible
+                ? "translate-y-0 opacity-100"
+                : "translate-y-10 opacity-0"
+            }`}
+          >
 
             <div className="mb-5 flex items-center gap-3 sm:mb-6">
               <span className="h-px w-8 bg-[#C9A227] sm:w-10" />
@@ -162,8 +206,15 @@ const Home = () => {
             </div>
           </div>
 
-          {/* Hero visual */}
-          <div className="relative mx-auto mt-4 h-[360px] w-full max-w-md sm:h-[440px] lg:mt-0 lg:h-[520px] lg:max-w-none">
+          {/* ================= HERO VISUAL ================= */}
+          <div
+            ref={heroVisualRef}
+            className={`relative mx-auto mt-4 h-[360px] w-full max-w-md transform transition-all duration-1000 delay-200 ease-out sm:h-[440px] lg:mt-0 lg:h-[520px] lg:max-w-none ${
+              heroVisualVisible
+                ? "translate-y-0 opacity-100"
+                : "translate-y-12 opacity-0"
+            }`}
+          >
 
             <div className="absolute right-0 top-3 h-[290px] w-[220px] rotate-3 overflow-hidden rounded-[1.5rem] border border-white/10 sm:h-[380px] sm:w-[280px] sm:rounded-[2rem] lg:h-[440px] lg:w-[340px]">
 
@@ -194,7 +245,7 @@ const Home = () => {
                 </p>
 
                 <p className="mt-1 text-xs text-[#C9A227] sm:text-sm">
-                  $129
+                  ₹129
                 </p>
               </div>
             </div>
@@ -202,8 +253,15 @@ const Home = () => {
         </div>
       </section>
 
-      {/* CATEGORIES */}
-      <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-20 lg:px-10 lg:py-24 xl:px-12">
+      {/* ================= CATEGORIES ================= */}
+      <section
+        ref={categoriesRef}
+        className={`mx-auto max-w-7xl transform px-5 py-16 transition-all duration-1000 ease-out sm:px-8 sm:py-20 lg:px-10 lg:py-24 xl:px-12 ${
+          categoriesVisible
+            ? "translate-y-0 opacity-100"
+            : "translate-y-12 opacity-0"
+        }`}
+      >
 
         <div className="mb-8 flex items-end justify-between sm:mb-10 lg:mb-12">
 
@@ -233,11 +291,20 @@ const Home = () => {
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-          {categories.map((category) => (
+          {categories.map((category, index) => (
             <Link
               key={category.name}
               to={`/shop?category=${category.name}`}
-              className="group relative h-[300px] overflow-hidden rounded-2xl border border-[#292929] bg-[#151515] sm:h-[340px] lg:h-[360px]"
+              style={{
+                transitionDelay: categoriesVisible
+                  ? `${index * 120}ms`
+                  : "0ms",
+              }}
+              className={`group relative h-[300px] transform overflow-hidden rounded-2xl border border-[#292929] bg-[#151515] transition-all duration-700 sm:h-[340px] lg:h-[360px] ${
+                categoriesVisible
+                  ? "translate-y-0 opacity-100"
+                  : "translate-y-10 opacity-0"
+              }`}
             >
               <img
                 src={category.image}
@@ -268,8 +335,15 @@ const Home = () => {
         </div>
       </section>
 
-      {/* FEATURED PRODUCTS */}
-      <section className="border-y border-[#292929] bg-[#111111]">
+      {/* ================= FEATURED PRODUCTS ================= */}
+      <section
+        ref={featuredRef}
+        className={`border-y border-[#292929] bg-[#111111] transform transition-all duration-1000 ease-out ${
+          featuredVisible
+            ? "translate-y-0 opacity-100"
+            : "translate-y-12 opacity-0"
+        }`}
+      >
 
         <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-20 lg:px-10 lg:py-24 xl:px-12">
 
@@ -296,11 +370,20 @@ const Home = () => {
 
           <div className="mt-8 grid gap-4 sm:mt-10 sm:grid-cols-2 lg:mt-12 lg:grid-cols-4">
 
-            {featuredProducts.map((product) => (
+            {featuredProducts.map((product, index) => (
               <Link
                 key={product.id}
                 to={`/products/${product.id}`}
-                className="group overflow-hidden rounded-2xl border border-[#292929] bg-[#0B0B0B] transition duration-300 hover:-translate-y-1 hover:border-[#C9A227]"
+                style={{
+                  transitionDelay: featuredVisible
+                    ? `${index * 120}ms`
+                    : "0ms",
+                }}
+                className={`group transform overflow-hidden rounded-2xl border border-[#292929] bg-[#0B0B0B] transition-all duration-700 hover:-translate-y-1 hover:border-[#C9A227] ${
+                  featuredVisible
+                    ? "translate-y-0 opacity-100"
+                    : "translate-y-10 opacity-0"
+                }`}
               >
                 <div className="relative h-64 overflow-hidden bg-[#151515] sm:h-72">
 
@@ -342,8 +425,15 @@ const Home = () => {
         </div>
       </section>
 
-      {/* PROMOTIONAL BANNER */}
-      <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-20 lg:px-10 lg:py-24 xl:px-12">
+      {/* ================= PROMOTIONAL BANNER ================= */}
+      <section
+        ref={promoRef}
+        className={`mx-auto max-w-7xl transform px-5 py-16 transition-all duration-1000 ease-out sm:px-8 sm:py-20 lg:px-10 lg:py-24 xl:px-12 ${
+          promoVisible
+            ? "translate-y-0 opacity-100"
+            : "translate-y-12 opacity-0"
+        }`}
+      >
 
         <div className="relative overflow-hidden rounded-2xl bg-black px-6 py-12 sm:rounded-3xl sm:px-10 sm:py-14 lg:px-16 lg:py-16">
 
@@ -377,8 +467,15 @@ const Home = () => {
         </div>
       </section>
 
-      {/* WHY VENDORA */}
-      <section className="border-t border-[#292929]">
+      {/* ================= WHY VENDORA ================= */}
+      <section
+        ref={whyRef}
+        className={`border-t border-[#292929] transform transition-all duration-1000 ease-out ${
+          whyVisible
+            ? "translate-y-0 opacity-100"
+            : "translate-y-12 opacity-0"
+        }`}
+      >
 
         <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-20 lg:px-10 lg:py-20 xl:px-12">
 
@@ -395,7 +492,7 @@ const Home = () => {
 
           <div className="grid gap-8 sm:grid-cols-3 sm:gap-6 lg:gap-10">
 
-            <div className="text-center">
+            <div className="text-center transition-transform duration-500 hover:-translate-y-1">
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#151515] text-[#C9A227] sm:h-14 sm:w-14">
                 <FiTruck size={21} />
               </div>
@@ -409,7 +506,7 @@ const Home = () => {
               </p>
             </div>
 
-            <div className="text-center">
+            <div className="text-center transition-transform duration-500 hover:-translate-y-1">
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#151515] text-[#C9A227] sm:h-14 sm:w-14">
                 <FiShield size={21} />
               </div>
@@ -423,7 +520,7 @@ const Home = () => {
               </p>
             </div>
 
-            <div className="text-center">
+            <div className="text-center transition-transform duration-500 hover:-translate-y-1">
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#151515] text-[#C9A227] sm:h-14 sm:w-14">
                 <FiRefreshCw size={21} />
               </div>
