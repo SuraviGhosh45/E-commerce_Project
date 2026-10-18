@@ -8,6 +8,7 @@ A complete shopping experience for customers and a dedicated admin dashboard for
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Site-success?style=for-the-badge)](https://e-commerce-project-two-gamma.vercel.app)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/SuraviGhosh45/E-commerce_Project)
+[![CI Tests](https://github.com/SuraviGhosh45/E-commerce_Project/actions/workflows/tests.yml/badge.svg)](https://github.com/SuraviGhosh45/E-commerce_Project/actions/workflows/tests.yml)
 
 ![React](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB)
 ![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white)
@@ -17,6 +18,7 @@ A complete shopping experience for customers and a dedicated admin dashboard for
 ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=flat&logo=mongodb&logoColor=white)
 ![AWS S3](https://img.shields.io/badge/AWS_S3-569A31?style=flat&logo=amazons3&logoColor=white)
 ![Razorpay](https://img.shields.io/badge/Razorpay-0C2451?style=flat&logo=razorpay&logoColor=white)
+![Jest](https://img.shields.io/badge/Jest-C21325?style=flat&logo=jest&logoColor=white)
 
 </div>
 
@@ -305,6 +307,17 @@ npm run dev
 ```
 
 The frontend will be available at `http://localhost:5173`.
+
+### 🧪 Running Tests
+
+```bash
+# Run all backend tests
+cd backend
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+```
 
 ---
 

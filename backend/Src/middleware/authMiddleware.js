@@ -20,10 +20,7 @@ const protect = async (req, res, next) => {
                 .findById(decoded.id)
                 .select("-password");
 
-                //tempo
-            console.log("AUTH USER ID:", req.user?._id);
-            console.log("AUTH USER EMAIL:", req.user?.email);
-            console.log("JWT USER ID:", decoded.id);
+
 
             if (!req.user) {
                 return res.status(401).json({

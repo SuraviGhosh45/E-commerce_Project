@@ -1,0 +1,47 @@
+name: CI Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    name: Backend Tests & Frontend Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: 'backend/package-lock.json'
+
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          npm ci
+
+      - name: Run backend tests with coverage
+        run: |
+          cd backend
+          npm run test:coverage
+        env:
+          JWT_SECRET: "ci_jwt_secret_key_123456789"
+          RAZORPAY_KEY_ID: "rzp_test_mock_id"
+          RAZORPAY_KEY_SECRET: "rzp_test_mock_secret"
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Verify frontend production build
+        run: |
+          cd frontend
+          npm run build

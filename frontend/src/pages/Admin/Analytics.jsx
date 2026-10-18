@@ -89,7 +89,11 @@ const Analytics = () => {
           Number(statsResponse.data?.total_Revenue) || 0,
       });
 
-      setOrders(ordersResponse.data?.orders || []);
+      setOrders(
+        ordersResponse.data?.allOrders ||
+          ordersResponse.data?.orders ||
+          []
+      );
       setProducts(productsResponse.data?.products || []);
     } catch (error) {
       console.error("FETCH ANALYTICS ERROR:", error);

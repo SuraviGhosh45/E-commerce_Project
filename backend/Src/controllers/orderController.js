@@ -15,8 +15,8 @@ const getMyOrders = async (req, res) => {
             )
             .sort({ createdAt: -1 });
 
-        if (!orders.length) {
-            return res.status(404).json({
+        if (!orders || !orders.length) {
+            return res.status(200).json({
                 message: "No Order Created Yet",
                 orders: [],
             });
@@ -50,16 +50,18 @@ const getAllOrders = async (req, res) => {
             )
             .sort({ createdAt: -1 });
 
-        if (!allOrders.length) {
-            return res.status(404).json({
+        if (!allOrders || !allOrders.length) {
+            return res.status(200).json({
                 message: "No Order Created Yet",
                 allOrders: [],
+                orders: [],
             });
         }
 
         return res.status(200).json({
             message: "All Orders Fetched",
             allOrders,
+            orders: allOrders,
         });
     } catch (error) {
         console.error("GET ALL ORDERS ERROR:", error);

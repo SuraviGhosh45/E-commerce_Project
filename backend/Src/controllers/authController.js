@@ -194,8 +194,8 @@ const getUsers = async (req, res) => {
       .find({})
       .select("-password");
 
-    if (!users.length) {
-      return res.status(404).json({
+    if (!users || !users.length) {
+      return res.status(200).json({
         message: "Users not found",
         users: [],
       });
